@@ -18,7 +18,9 @@ import java.util.stream.Collectors;
 import de.storchp.opentracks.osmplugin.R;
 
 public class PreferencesUtils {
-
+    private PreferencesUtils() {
+        throw new IllegalStateException("This is Utility Class. ");
+    }
     private final static String TAG = PreferencesUtils.class.getSimpleName();
     private static SharedPreferences sharedPrefs;
     private static Resources resources;
