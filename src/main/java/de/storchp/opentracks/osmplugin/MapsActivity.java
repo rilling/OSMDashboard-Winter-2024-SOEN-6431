@@ -512,7 +512,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         try {
             gl.glReadPixels(x, y, w, h, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, intBuffer);
-            int offset1, offset2;
+            int offset1;
+            int offset2;
             for (int i = 0; i < h; i++) {
                 offset1 = i * w;
                 offset2 = (h - i - 1) * w;
