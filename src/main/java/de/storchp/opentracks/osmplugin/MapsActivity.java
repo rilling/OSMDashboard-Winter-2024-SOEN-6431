@@ -271,7 +271,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         super.onCreateOptionsMenu(menu, true);
-        // TODO: menu.findItem(R.id.share).setVisible(true);
         return true;
     }
 
@@ -296,7 +295,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 if (fragment != null) {
                     themeFileUri = themeFileUri.buildUpon().fragment(null).build();
                 } else {
-                    throw new RuntimeException("Fragment missing, which indicates the theme inside the zip file");
+                    throw new IllegalArgumentException("Fragment missing, which indicates the theme inside the zip file");
                 }
                 return new ZipRenderTheme(fragment, new ZipXmlThemeResourceProvider(new ZipInputStream(new BufferedInputStream(getContentResolver().openInputStream(themeFileUri)))));
             }
