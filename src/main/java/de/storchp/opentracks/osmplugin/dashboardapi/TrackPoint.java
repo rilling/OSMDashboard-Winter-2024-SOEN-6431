@@ -16,7 +16,7 @@ import de.storchp.opentracks.osmplugin.utils.TrackPointsDebug;
 
 public class TrackPoint {
 
-    public static final String _ID = "_id";
+    public static final String ID = "_id";
     public static final String TRACKID = "trackid";
     public static final String LONGITUDE = "longitude";
     public static final String LATITUDE = "latitude";
@@ -26,7 +26,7 @@ public class TrackPoint {
     public static final double PAUSE_LATITUDE = 100.0;
 
     public static final String[] PROJECTION_V1 = {
-            _ID,
+            ID,
             TRACKID,
             LATITUDE,
             LONGITUDE,
@@ -35,7 +35,7 @@ public class TrackPoint {
     };
 
     public static final String[] PROJECTION_V2 = {
-            _ID,
+            ID,
             TRACKID,
             LATITUDE,
             LONGITUDE,
@@ -83,12 +83,12 @@ public class TrackPoint {
             projection = PROJECTION_V1;
             typeQuery = "";
         }
-        try (Cursor cursor = resolver.query(data, projection, TrackPoint._ID + "> ?" + typeQuery, new String[]{Long.toString(lastTrackPointId)}, null)) {
+        try (Cursor cursor = resolver.query(data, projection, TrackPoint.ID + "> ?" + typeQuery, new String[]{Long.toString(lastTrackPointId)}, null)) {
             TrackPoint lastTrackPoint = null;
             List<TrackPoint> segment = null;
             while (cursor.moveToNext()) {
                 debug.trackpointsReceived++;
-                var trackPointId = cursor.getLong(cursor.getColumnIndexOrThrow(TrackPoint._ID));
+                var trackPointId = cursor.getLong(cursor.getColumnIndexOrThrow(TrackPoint.ID));
                 var trackId = cursor.getLong(cursor.getColumnIndexOrThrow(TrackPoint.TRACKID));
                 var latitude = cursor.getInt(cursor.getColumnIndexOrThrow(TrackPoint.LATITUDE)) / LAT_LON_FACTOR;
                 var longitude = cursor.getInt(cursor.getColumnIndexOrThrow(TrackPoint.LONGITUDE)) / LAT_LON_FACTOR;
