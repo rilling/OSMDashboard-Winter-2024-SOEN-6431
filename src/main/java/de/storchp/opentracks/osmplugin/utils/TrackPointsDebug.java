@@ -5,7 +5,7 @@ public class TrackPointsDebug {
     public int trackpointsInvalid = 0;
     public int trackpointsDrawn = 0;
     public int trackpointsPause = 0;
-    public int segments = 0;
+    public static int segments = 0;
 
     public void add(final TrackPointsDebug other) {
         this.trackpointsReceived += other.trackpointsReceived;
