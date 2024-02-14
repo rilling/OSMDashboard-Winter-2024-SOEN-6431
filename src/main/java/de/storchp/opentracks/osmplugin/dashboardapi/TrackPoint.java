@@ -25,7 +25,7 @@ public class TrackPoint {
     public static final String SPEED = "speed";
     public static final double PAUSE_LATITUDE = 100.0;
 
-    protected static final String[] PROJECTION_V1 = {
+    public static final String[] PROJECTION_V1 = {
             _ID,
             TRACKID,
             LATITUDE,
@@ -34,7 +34,7 @@ public class TrackPoint {
             SPEED
     };
 
-    protected static final String[] PROJECTION_V2 = {
+    public static final String[] PROJECTION_V2 = {
             _ID,
             TRACKID,
             LATITUDE,
