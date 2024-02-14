@@ -5,6 +5,9 @@ import android.net.Uri;
 import java.util.ArrayList;
 
 public class APIConstants {
+    private APIConstants() {
+        throw new IllegalStateException("Utility class");
+    }
 
     public static final double LAT_LON_FACTOR = 1E6;
 
