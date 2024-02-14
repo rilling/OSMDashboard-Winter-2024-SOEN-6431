@@ -6,6 +6,10 @@ import java.util.ArrayList;
 
 public class APIConstants {
 
+    private APIConstants(){
+        throw new AssertionError();
+    }
+
     public static final double LAT_LON_FACTOR = 1E6;
 
     // NOTE: Needs to be used in AndroidManifest.xml!
