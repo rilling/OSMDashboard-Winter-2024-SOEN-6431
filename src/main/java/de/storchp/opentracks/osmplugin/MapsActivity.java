@@ -453,7 +453,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         // draw
         var canvas = new Canvas();
         var toBeCropped = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-        //canvas.setBitmap(toBeCropped);
 
         captureBitmap(canvas::setBitmap);
         view.draw(canvas);
