@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
 import de.storchp.opentracks.osmplugin.R;
 
 public class PreferencesUtils {
+    private PreferencesUtils() {
+       Log.d(TAG,"You Cannot Initialize Util Class");
+    }
 
     private static final String TAG = PreferencesUtils.class.getSimpleName();
     private static SharedPreferences sharedPrefs;
