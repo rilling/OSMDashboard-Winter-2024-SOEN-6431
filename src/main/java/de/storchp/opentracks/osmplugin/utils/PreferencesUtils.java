@@ -19,7 +19,7 @@ import de.storchp.opentracks.osmplugin.R;
 
 public class PreferencesUtils {
     private PreferencesUtils() {
-        throw new IllegalStateException("This is Utility Class. ");
+        System.out.println("You cannot initialize util Class");
     }
     private final static String TAG = PreferencesUtils.class.getSimpleName();
     private static SharedPreferences sharedPrefs;
