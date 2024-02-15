@@ -462,8 +462,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         bitmapOptions.inTargetDensity = 1;
         toBeCropped.setDensity(Bitmap.DENSITY_NONE);
 
-        int cropFromTop = (int) (70
-                * ((float) getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT));
+        int cropFromTop = (int) (70 * ((float) getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT));
         int fromHere = toBeCropped.getHeight() - cropFromTop;
         var croppedBitmap = Bitmap.createBitmap(toBeCropped, 0, cropFromTop, toBeCropped.getWidth(), fromHere);
 
@@ -475,8 +474,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             croppedBitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
             out.close();
             var share = new Intent(Intent.ACTION_SEND);
-            share.putExtra(Intent.EXTRA_STREAM,
-                    FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", file));
+            share.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", file));
             share.setType("image/png");
             startActivity(Intent.createChooser(share, "send"));
         } catch (Exception exception) {
