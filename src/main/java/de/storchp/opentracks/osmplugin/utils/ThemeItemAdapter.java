@@ -33,10 +33,9 @@ public class ThemeItemAdapter extends ArrayAdapter<FileItem> {
         return false;
     }
 @Override
-    public boolean isEnabled(int position) {
-        return !onlineMapSelected || position == 0;
-    }
-
+public boolean isEnabled(int position) {
+    return !onlineMapSelected || position == 0;
+}
     @NonNull
     @Override
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
