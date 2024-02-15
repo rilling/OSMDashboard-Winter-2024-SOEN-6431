@@ -246,14 +246,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             uiOptions |= View.SYSTEM_UI_FLAG_FULLSCREEN;
             uiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE;
             uiOptions |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            binding.map.fullscreenButton
-                    .setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_fullscreen_exit_48));
+            binding.map.fullscreenButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_fullscreen_exit_48));
         } else {
             uiOptions &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
             uiOptions &= ~View.SYSTEM_UI_FLAG_IMMERSIVE;
             uiOptions &= ~View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-            binding.map.fullscreenButton
-                    .setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_fullscreen_48));
+            binding.map.fullscreenButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_baseline_fullscreen_48));
         }
         binding.toolbar.mapsToolbar.setVisibility(showFullscreen ? View.GONE : View.VISIBLE);
         decorView.setSystemUiVisibility(uiOptions);
@@ -299,8 +297,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 } else {
                     throw new RuntimeException("Fragment missing, which indicates the theme inside the zip file");
                 }
-                return new ZipRenderTheme(fragment, new ZipXmlThemeResourceProvider(new ZipInputStream(
-                        new BufferedInputStream(getContentResolver().openInputStream(themeFileUri)))));
+                return new ZipRenderTheme(fragment, new ZipXmlThemeResourceProvider(new ZipInputStream(new BufferedInputStream(getContentResolver().openInputStream(themeFileUri)))));
             }
             return new StreamRenderTheme("/assets/", getContentResolver().openInputStream(themeFileUri));
         } catch (Exception e) {
@@ -395,8 +392,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         builder.cache(cache);
 
         tileSource.setHttpEngine(new OkHttpEngine.OkHttpFactory(builder));
-        tileSource.setHttpRequestHeaders(Collections.singletonMap("User-Agent",
-                getString(R.string.app_name) + ":" + BuildConfig.APPLICATION_ID));
+        tileSource.setHttpRequestHeaders(Collections.singletonMap("User-Agent", getString(R.string.app_name) + ":" + BuildConfig.APPLICATION_ID));
 
         BitmapTileLayer bitmapLayer = new BitmapTileLayer(map, tileSource);
         map.layers().add(bitmapLayer);
@@ -457,7 +453,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         // draw
         var canvas = new Canvas();
         var toBeCropped = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-        // canvas.setBitmap(toBeCropped);
+        //canvas.setBitmap(toBeCropped);
 
         captureBitmap(canvas::setBitmap);
         view.draw(canvas);
@@ -546,8 +542,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             int tolerance = PreferencesUtils.getTrackSmoothingTolerance();
 
             try {
-                var trackpointsBySegments = TrackPoint.readTrackPointsBySegments(getContentResolver(), data,
-                        lastTrackPointId, protocolVersion);
+                var trackpointsBySegments = TrackPoint.readTrackPointsBySegments(getContentResolver(), data, lastTrackPointId, protocolVersion);
                 if (trackpointsBySegments.isEmpty()) {
                     Log.d(TAG, "No new trackpoints received");
                     return;
@@ -618,8 +613,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 }
                 trackPointsDebug.add(trackpointsBySegments.debug());
             } catch (SecurityException e) {
-                Toast.makeText(MapsActivity.this, getString(R.string.error_reading_trackpoints, e.getMessage()),
-                        Toast.LENGTH_LONG).show();
+                Toast.makeText(MapsActivity.this, getString(R.string.error_reading_trackpoints, e.getMessage()), Toast.LENGTH_LONG).show();
                 return;
             } catch (Exception e) {
                 throw new RuntimeException("Error reading trackpoints", e);
@@ -709,8 +703,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 map.render();
             } else {
                 endMarker = new MarkerItem(endPos.toString(), "", endPos);
-                var symbol = MapUtils.createMarkerSymbol(this, R.drawable.ic_compass, false,
-                        MarkerSymbol.HotspotPlace.CENTER);
+                var symbol = MapUtils.createMarkerSymbol(this, R.drawable.ic_compass, false, MarkerSymbol.HotspotPlace.CENTER);
                 endMarker.setMarker(symbol);
                 endMarker.setRotation(MapUtils.rotateWith(mapMode, movementDirection));
                 waypointsLayer.addItem(endMarker);
