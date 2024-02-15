@@ -19,7 +19,7 @@ import de.storchp.opentracks.osmplugin.R;
 
 public class PreferencesUtils {
 
-    private final static String TAG = PreferencesUtils.class.getSimpleName();
+    private static final String TAG = PreferencesUtils.class.getSimpleName();
     private static SharedPreferences sharedPrefs;
     private static Resources resources;
 
