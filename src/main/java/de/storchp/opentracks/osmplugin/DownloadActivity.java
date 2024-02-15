@@ -251,8 +251,8 @@ public class DownloadActivity extends BaseActivity {
                     if (input != null) {
                         input.close();
                     }
-                } catch (IOException ignored) {
-                    System.err.println("An IOException occurred but was ignored.");
+                } catch (IOException e) {
+                    Log.e(TAG, "IO Exception occurred", e);
                 }
 
                 if (connection != null) {
