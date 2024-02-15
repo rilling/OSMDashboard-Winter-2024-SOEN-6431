@@ -113,7 +113,7 @@ public class TrackPoint {
                 }
                 if (lastTrackPoint.isPause()) {
                     debug.trackpointsPause++;
-                    if (!lastTrackPoint.hasValidLocation() && segment.isEmpty() ) {
+                    if (!lastTrackPoint.hasValidLocation() && !segment.isEmpty() ) {
                            var previousTrackpoint = segment.get(segment.size() - 1);
                            if (previousTrackpoint.hasValidLocation()) {
                                segment.add(new TrackPoint(trackId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed));
