@@ -1,5 +1,6 @@
 package de.storchp.opentracks.osmplugin;
 
+
 import static android.util.TypedValue.COMPLEX_UNIT_PT;
 import static java.util.Comparator.comparingInt;
 
@@ -606,8 +607,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                             startPos = endPos;
                         }
                     }
-                    trackpointsBySegments.debug().setTrackpointsDrawn(
-                            trackpointsBySegments.debug().getTrackpointsDrawn() + trackPoints.size());
+                    trackpointsBySegments.debug().setTrackpointsDrawn(trackpointsBySegments.debug().getTrackpointsDrawn() + trackPoints.size());
                 }
                 trackPointsDebug.add(trackpointsBySegments.debug());
             } catch (SecurityException e) {
@@ -686,7 +686,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                             trackPointsDebug.getTrackpointsDrawn(),
                             trackPointsDebug.getTrackpointsPause(),
                             trackPointsDebug.getSegments(),
-                            protocolVersion));
+                            protocolVersion
+                    ));
         } else {
             binding.map.trackpointsDebugInfo.setText("");
         }
@@ -854,6 +855,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         unregisterContentObserver();
         super.onStop();
     }
+
 
     private void unregisterContentObserver() {
         if (contentObserver != null) {
