@@ -29,6 +29,7 @@ public class ThemeItemAdapter extends ArrayAdapter<FileItem> {
         this.onlineMapSelected = onlineMapSelected;
     }
 
+    @Override
     public boolean areAllItemsEnabled() {
         return false;
     }
