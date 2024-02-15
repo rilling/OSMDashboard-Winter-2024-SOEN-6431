@@ -74,8 +74,7 @@ public class TrackPoint {
      * Reads the TrackPoints from the Content Uri and split by segments.
      * Pause TrackPoints and different Track IDs split the segments.
      */
-    public static TrackPointsBySegments readTrackPointsBySegments(ContentResolver resolver, Uri data,
-            long lastTrackPointId, int protocolVersion) {
+    public static TrackPointsBySegments readTrackPointsBySegments(ContentResolver resolver, Uri data, long lastTrackPointId, int protocolVersion) {
         var debug = new TrackPointsDebug();
         var segments = new ArrayList<List<TrackPoint>>();
         var projection = PROJECTION_V2;
@@ -84,8 +83,7 @@ public class TrackPoint {
             projection = PROJECTION_V1;
             typeQuery = "";
         }
-        try (Cursor cursor = resolver.query(data, projection, TrackPoint._ID + "> ?" + typeQuery,
-                new String[] { Long.toString(lastTrackPointId) }, null)) {
+        try (Cursor cursor = resolver.query(data, projection, TrackPoint._ID + "> ?" + typeQuery, new String[] { Long.toString(lastTrackPointId) }, null)) {
             TrackPoint lastTrackPoint = null;
             List<TrackPoint> segment = null;
             while (cursor.moveToNext()) {
@@ -149,5 +147,4 @@ public class TrackPoint {
     public double getSpeed() {
         return speed;
     }
-
 }
