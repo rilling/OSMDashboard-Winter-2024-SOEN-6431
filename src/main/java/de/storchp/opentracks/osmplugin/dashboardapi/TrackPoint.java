@@ -125,7 +125,7 @@ public class TrackPoint {
                 }
             }
         }
-        debug.segments = segments.size();
+        debug.setSegments(segments.size());
 
         return new TrackPointsBySegments(segments, debug);
     }
