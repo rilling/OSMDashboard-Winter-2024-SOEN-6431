@@ -271,7 +271,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         super.onCreateOptionsMenu(menu, true);
-        menu.findItem(R.id.share).setVisible(true);
         return true;
     }
 
