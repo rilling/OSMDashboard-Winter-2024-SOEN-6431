@@ -58,7 +58,7 @@ public class Waypoint {
         this.name = name;
         this.description = description;
         this.category = category;
-        this.waypointicon = waypointicon;
+        this.waypointicon = icon;
         this.trackId = trackId;
         this.latLong = latLong;
         this.photoUrl = photoUrl;
@@ -131,7 +131,7 @@ public class Waypoint {
                 if (MapUtils.isValid(latitude, longitude)) {
                     var latLong = new GeoPoint(latitude, longitude);
                     var photoUrl = cursor.getString(cursor.getColumnIndexOrThrow(Waypoint.PHOTOURL));
-                    waypoints.add(new Waypoint(waypointId, name, description, category, icon, trackId, latLong, photoUrl));
+                    waypoints.add(new Waypoint(waypointId, name, description, category, waypointicon, trackId, latLong, photoUrl));
                 }
             }
         }
@@ -156,7 +156,7 @@ public class Waypoint {
     }
 
     public String getIcon() {
-        return icon;
+        return waypointicon;
     }
 
     public long getTrackId() {
