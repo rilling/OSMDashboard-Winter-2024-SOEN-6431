@@ -252,7 +252,7 @@ public class DownloadActivity extends BaseActivity {
                         input.close();
                     }
                 } catch (IOException ignored) {
-                    ignored.printStackTrace();
+                    LOGGER.log("context",ignored);
                 }
 
                 if (connection != null) {
