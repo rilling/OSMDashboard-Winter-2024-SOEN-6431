@@ -606,7 +606,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                             startPos = endPos;
                         }
                     }
-                    trackpointsBySegments.debug().trackpointsDrawn += trackPoints.size();
+                    trackpointsBySegments.debug().setTrackpointsDrawn(trackpointsBySegments.debug().getTrackpointsDrawn() + trackPoints.size());
                 }
                 trackPointsDebug.add(trackpointsBySegments.debug());
             } catch (SecurityException e) {
@@ -680,11 +680,11 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         if (PreferencesUtils.isDebugTrackPoints()) {
             binding.map.trackpointsDebugInfo.setText(
                     getString(R.string.debug_trackpoints_info,
-                            trackPointsDebug.trackpointsReceived,
-                            trackPointsDebug.trackpointsInvalid,
-                            trackPointsDebug.trackpointsDrawn,
-                            trackPointsDebug.trackpointsPause,
-                            trackPointsDebug.segments,
+                            trackPointsDebug.getTrackpointsReceived(),
+                            trackPointsDebug.getTrackpointsInvalid(),
+                            trackPointsDebug.getTrackpointsDrawn(),
+                            trackPointsDebug.getTrackpointsPause(),
+                            trackPointsDebug.getSegments(),
                             protocolVersion
                     ));
         } else {
