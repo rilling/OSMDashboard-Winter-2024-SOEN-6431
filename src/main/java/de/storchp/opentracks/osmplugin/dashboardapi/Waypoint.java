@@ -22,7 +22,7 @@ public class Waypoint {
     public static final String NAME = "name"; // waypoint name
     public static final String DESCRIPTION = "description"; // waypoint description
     public static final String CATEGORY = "category"; // waypoint category
-    public static final String ICON = "icon"; // waypoint icon
+    public static final String ICON = "waypointicon"; // waypoint icon
     public static final String TRACKID = "trackid"; // track id
     public static final String LONGITUDE = "longitude"; // longitude
     public static final String LATITUDE = "latitude"; // latitude
@@ -48,7 +48,7 @@ public class Waypoint {
     private final String name;
     private String description;
     private String category;
-    private String icon;
+    private String waypointicon;
     private long trackId;
     private final GeoPoint latLong;
     private String photoUrl;
@@ -58,7 +58,7 @@ public class Waypoint {
         this.name = name;
         this.description = description;
         this.category = category;
-        this.icon = icon;
+        this.waypointicon = icon;
         this.trackId = trackId;
         this.latLong = latLong;
         this.photoUrl = photoUrl;
@@ -124,14 +124,14 @@ public class Waypoint {
                 var name = cursor.getString(cursor.getColumnIndexOrThrow(Waypoint.NAME));
                 var description = cursor.getString(cursor.getColumnIndexOrThrow(Waypoint.DESCRIPTION));
                 var category = cursor.getString(cursor.getColumnIndexOrThrow(Waypoint.CATEGORY));
-                var icon = cursor.getString(cursor.getColumnIndexOrThrow(Waypoint.ICON));
+                var waypointicon = cursor.getString(cursor.getColumnIndexOrThrow(Waypoint.ICON));
                 var trackId = cursor.getLong(cursor.getColumnIndexOrThrow(Waypoint.TRACKID));
                 var latitude = cursor.getInt(cursor.getColumnIndexOrThrow(Waypoint.LATITUDE)) / LAT_LON_FACTOR;
                 var longitude = cursor.getInt(cursor.getColumnIndexOrThrow(Waypoint.LONGITUDE)) / LAT_LON_FACTOR;
                 if (MapUtils.isValid(latitude, longitude)) {
                     var latLong = new GeoPoint(latitude, longitude);
                     var photoUrl = cursor.getString(cursor.getColumnIndexOrThrow(Waypoint.PHOTOURL));
-                    waypoints.add(new Waypoint(waypointId, name, description, category, icon, trackId, latLong, photoUrl));
+                    waypoints.add(new Waypoint(waypointId, name, description, category, waypointicon, trackId, latLong, photoUrl));
                 }
             }
         }
@@ -156,7 +156,7 @@ public class Waypoint {
     }
 
     public String getIcon() {
-        return icon;
+        return waypointicon;
     }
 
     public long getTrackId() {
