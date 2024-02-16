@@ -113,12 +113,10 @@ public class TrackPoint {
                 }
                 if (lastTrackPoint.isPause()) {
                     debug.trackpointsPause++;
-                    if (!lastTrackPoint.hasValidLocation()) {
-                       if (segment.size() > 0) {
-                           var previousTrackpoint = segment.get(segment.size() - 1);
-                           if (previousTrackpoint.hasValidLocation()) {
-                               segment.add(new TrackPoint(trackId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed));
-                           }
+                    if (!lastTrackPoint.hasValidLocation() && segment.size() > 0) {
+                       var previousTrackpoint = segment.get(segment.size() - 1);
+                       if (previousTrackpoint.hasValidLocation()) {
+                           segment.add(new TrackPoint(trackId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed));
                        }
                     }
                     lastTrackPoint = null;
