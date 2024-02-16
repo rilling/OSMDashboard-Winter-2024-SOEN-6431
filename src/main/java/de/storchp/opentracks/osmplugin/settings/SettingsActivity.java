@@ -77,6 +77,16 @@ public class SettingsActivity extends AppCompatActivity {
             PreferencesUtils.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
         }
 
+        private String getMapDirectoryUri() {
+            var uri = PreferencesUtils.getMapDirectoryUri();
+            return uri != null ? uri.getLastPathSegment() : null;
+        }
+
+        private String getThemeDirectoryUri() {
+            var uri = PreferencesUtils.getMapThemeDirectoryUri();
+            return uri != null ? uri.getLastPathSegment() : null;
+        }
+
         private void setSummaries() {
             var mapsPreference = findPreference(getString(R.string.APP_PREF_MAP_SELECTION));
             if (mapsPreference != null) {
@@ -95,10 +105,9 @@ public class SettingsActivity extends AppCompatActivity {
 
             var mapDirectoryPreference = findPreference(getString(R.string.APP_PREF_MAP_DIRECTORY));
             if (mapDirectoryPreference != null) {
-                mapDirectoryPreference.setSummaryProvider((Preference.SummaryProvider<Preference>) preference -> {
-                    var uri = PreferencesUtils.getMapDirectoryUri();
-                    return uri != null ? uri.getLastPathSegment() : null;
-                });
+                mapDirectoryPreference.setSummaryProvider((Preference.SummaryProvider<Preference>) preference ->
+                        getMapDirectoryUri()
+                );
             }
 
             var themePreference = findPreference(getString(R.string.APP_PREF_MAP_THEME));
@@ -118,10 +127,9 @@ public class SettingsActivity extends AppCompatActivity {
 
             var themeDirectoryPreference = findPreference(getString(R.string.APP_PREF_MAP_THEME_DIRECTORY));
             if (themeDirectoryPreference != null) {
-                themeDirectoryPreference.setSummaryProvider((Preference.SummaryProvider<Preference>) preference -> {
-                    var uri = PreferencesUtils.getMapThemeDirectoryUri();
-                    return uri != null ? uri.getLastPathSegment() : null;
-                });
+                themeDirectoryPreference.setSummaryProvider((Preference.SummaryProvider<Preference>) preference ->
+                        getThemeDirectoryUri()
+                );
             }
         }
 
