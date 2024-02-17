@@ -25,7 +25,7 @@ public class TrackPoint {
     public static final String SPEED = "speed";
     public static final double PAUSE_LATITUDE = 100.0;
 
-    public static final String[] PROJECTION_V1 = {
+    protected static final String[] PROJECTION_V1 = {
             _ID,
             TRACKID,
             LATITUDE,
@@ -34,7 +34,7 @@ public class TrackPoint {
             SPEED
     };
 
-    public static final String[] PROJECTION_V2 = {
+    protected static final String[] PROJECTION_V2 = {
             _ID,
             TRACKID,
             LATITUDE,
@@ -119,7 +119,6 @@ public class TrackPoint {
                            if (previousTrackpoint.hasValidLocation()) {
                                segment.add(new TrackPoint(trackId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed));
                            }
-                       }
                     }
                     lastTrackPoint = null;
                 }
