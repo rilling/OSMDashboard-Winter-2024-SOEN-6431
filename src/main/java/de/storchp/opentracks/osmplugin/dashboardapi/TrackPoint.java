@@ -131,7 +131,7 @@ public class TrackPoint {
                     lastTrackPoint = null;
                 }
             }
-        
+    }
         debug.segments = segments.size();
 
         return new TrackPointsBySegments(segments, debug);
