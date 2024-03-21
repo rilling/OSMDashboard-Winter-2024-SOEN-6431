@@ -26,13 +26,20 @@ public class PreferencesUtils {
     public static void initPreferences(Context context) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         resources = context.getResources();
+        Log.d("initPreferences", resources.toString());
+
+
     }
 
     private static String getKey(@StringRes int keyId) {
+        Log.d("getKey",resources.getString(keyId));
+
         return resources.getString(keyId);
     }
 
     public static Set<Uri> getMapUris() {
+        Log.d("getMapUris", getUris(getKey(R.string.APP_PREF_MAP_FILES)).toString());
+
         return getUris(getKey(R.string.APP_PREF_MAP_FILES));
     }
 
@@ -41,6 +48,8 @@ public class PreferencesUtils {
     }
 
     public static Uri getMapDirectoryUri() {
+        Log.d("getMapDirectoryUri", getUri(getKey(R.string.APP_PREF_MAP_DIRECTORY)).toString());
+
         return getUri(getKey(R.string.APP_PREF_MAP_DIRECTORY));
     }
 
@@ -49,6 +58,8 @@ public class PreferencesUtils {
     }
 
     public static Uri getMapThemeDirectoryUri() {
+
+
         return getUri(getKey(R.string.APP_PREF_MAP_THEME_DIRECTORY));
     }
 
@@ -85,6 +96,14 @@ public class PreferencesUtils {
     }
 
     private static Set<Uri> getUris(String keyId) {
+
+        Log.d("getUris", sharedPrefs.getStringSet(keyId, Collections.emptySet())
+                .stream()
+                .map(PreferencesUtils::parseUri)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet())
+                .toString());
+
         return sharedPrefs.getStringSet(keyId, Collections.emptySet()).stream()
                 .map(PreferencesUtils::parseUri)
                 .filter(Objects::nonNull)
@@ -92,11 +111,15 @@ public class PreferencesUtils {
     }
 
     private static Uri getUri(String keyId) {
+//        Log.d("getUri", parseUri(sharedPrefs.getString(keyId).toString());
+
         return parseUri(sharedPrefs.getString(keyId, null));
     }
 
     private static Uri parseUri(String value) {
         try {
+        Log.d("parseUri", Uri.parse(value).toString());
+
             return Uri.parse(value);
         } catch (Exception ignored) {
             Log.e(TAG, "can't read Uri string " + value);
@@ -116,6 +139,8 @@ public class PreferencesUtils {
     }
 
     private static String getString(int keyId, String defaultValue) {
+        Log.d("getString", sharedPrefs.getString(getKey(keyId), defaultValue));
+
         return sharedPrefs.getString(getKey(keyId), defaultValue);
     }
 
@@ -132,6 +157,8 @@ public class PreferencesUtils {
     }
 
     private static Set<String> getStringSet(int keyId, Set<String> defaultValue) {
+        Log.d("getStringSet", sharedPrefs.getStringSet(getKey(keyId), defaultValue).toString());
+
         return sharedPrefs.getStringSet(getKey(keyId), defaultValue);
     }
 
@@ -146,6 +173,8 @@ public class PreferencesUtils {
     }
 
     private static int getInt(int keyId, int defaultValue) {
+//        Log.d("getInt", sharedPrefs.);
+
         return sharedPrefs.getInt(getKey(keyId), defaultValue);
     }
 
@@ -166,6 +195,8 @@ public class PreferencesUtils {
     }
 
     public static Set<StatisticElement> getStatisticElements() {
+
+//        Log.d("aaaa", getStringSet(R.string.APP_PREF_STATISTIC_ELEMENTS).toString());
         return getStringSet(R.string.APP_PREF_STATISTIC_ELEMENTS, Set.of(resources.getStringArray(R.array.statistic_elements_defaults))).stream()
                 .map(StatisticElement::of)
                 .filter(Objects::nonNull)
