@@ -1,5 +1,6 @@
 package de.storchp.opentracks.osmplugin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -22,6 +23,12 @@ public class OptionsActivity extends MapsActivity {
                 // Handle radio button selection
                 String selectedText = radioButton.getText().toString();
                 Toast.makeText(OptionsActivity.this, "Selected: " + selectedText, Toast.LENGTH_SHORT).show();
+
+
+                if (selectedText.equals("Option 1")) {
+                    Intent intent = new Intent(OptionsActivity.this, option1.class);
+                    startActivity(intent);
+                }
             }
         });
     }
