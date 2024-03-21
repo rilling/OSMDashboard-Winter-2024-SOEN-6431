@@ -29,6 +29,18 @@ public class OptionsActivity extends MapsActivity {
                     Intent intent = new Intent(OptionsActivity.this, option1.class);
                     startActivity(intent);
                 }
+                else if (selectedText.equals("Option 2")) {
+                    Intent intent = new Intent(OptionsActivity.this, option2.class);
+                    startActivity(intent);
+                }
+                else if (selectedText.equals("Option 3")) {
+                    Intent intent = new Intent(OptionsActivity.this, option3.class);
+                    startActivity(intent);
+                }
+                else if (selectedText.equals("Option 4")) {
+                    Intent intent = new Intent(OptionsActivity.this, option4.class);
+                    startActivity(intent);
+                }
             }
         });
     }
