@@ -14,7 +14,7 @@ public class option2 extends MapsActivity{
         TextView textViewHelloWorld = findViewById(R.id.option2);
 
         // Set the text to "Hello World!"
-        textViewHelloWorld.setText("Hello World!");
+        textViewHelloWorld.setText("Hello hiiii");
     }
 
 }
