@@ -11,6 +11,7 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+
 import java.util.Objects;
 
 import de.storchp.opentracks.osmplugin.BuildConfig;

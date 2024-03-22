@@ -10,6 +10,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 
 import de.storchp.opentracks.osmplugin.databinding.ActivityMainBinding;
+import de.storchp.opentracks.osmplugin.BuildConfig;
 
 public class MainActivity extends BaseActivity {
 
