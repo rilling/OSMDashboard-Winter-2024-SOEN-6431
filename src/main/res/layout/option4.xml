@@ -4,13 +4,19 @@
     android:layout_height="match_parent"
     android:background="@android:color/white">
 
-    <TextView
-        android:id="@+id/option4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="Hello World!"
-        android:textColor="@android:color/black"
-        android:textSize="24sp" />
+<!--    <TextView-->
+<!--        android:id="@+id/option4"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_centerInParent="true"-->
+<!--        android:text="Hello World!"-->
+<!--        android:textColor="@android:color/black"-->
+<!--        android:textSize="24sp" />-->
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/lineChart"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+<!--        android:layout_below="@id/option4" -->
 
 </RelativeLayout>
