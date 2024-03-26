@@ -3,4 +3,9 @@
     <!-- Brand colors -->
     <color name="opentracks">#FF6D00</color>
     <color name="track_statistic">#FF000000</color> <!-- black -->
+
+    <!-- Table dimensions -->
+    <dimen name="table_padding">16dp</dimen>
+    <dimen name="table_text_size">16sp</dimen>
+    <color name="table_background_color">#FFFFFF</color>
 </resources>
