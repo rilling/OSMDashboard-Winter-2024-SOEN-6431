@@ -296,7 +296,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 if (fragment != null) {
                     themeFileUri = themeFileUri.buildUpon().fragment(null).build();
                 } else {
-                    throw new RuntimeException("Fragment missing, which indicates the theme inside the zip file");
+                    throw new IllegalArgumentException("Fragment missing, which indicates the theme inside the zip file");
                 }
                 return new ZipRenderTheme(fragment, new ZipXmlThemeResourceProvider(new ZipInputStream(new BufferedInputStream(getContentResolver().openInputStream(themeFileUri)))));
             }
@@ -454,7 +454,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         // draw
         var canvas = new Canvas();
         var toBeCropped = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-        
 
         captureBitmap(canvas::setBitmap);
         view.draw(canvas);
@@ -608,7 +607,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                             startPos = endPos;
                         }
                     }
-                    trackpointsBySegments.debug().trackpointsDrawn += trackPoints.size();
+                    trackpointsBySegments.debug().setTrackpointsDrawn(trackpointsBySegments.debug().getTrackpointsDrawn() + trackPoints.size());
                 }
                 trackPointsDebug.add(trackpointsBySegments.debug());
             } catch (SecurityException e) {
@@ -682,11 +681,11 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         if (PreferencesUtils.isDebugTrackPoints()) {
             binding.map.trackpointsDebugInfo.setText(
                     getString(R.string.debug_trackpoints_info,
-                            trackPointsDebug.trackpointsReceived,
-                            trackPointsDebug.trackpointsInvalid,
-                            trackPointsDebug.trackpointsDrawn,
-                            trackPointsDebug.trackpointsPause,
-                            trackPointsDebug.segments,
+                            trackPointsDebug.getTrackpointsReceived(),
+                            trackPointsDebug.getTrackpointsInvalid(),
+                            trackPointsDebug.getTrackpointsDrawn(),
+                            trackPointsDebug.getTrackpointsPause(),
+                            trackPointsDebug.getSegments(),
                             protocolVersion
                     ));
         } else {
