@@ -539,14 +539,14 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             var showPauseMarkers = PreferencesUtils.isShowPauseMarkers();
             var latLongs = new ArrayList<GeoPoint>();
             int tolerance = PreferencesUtils.getTrackSmoothingTolerance();
-
+            Log.i(TAG, "in sync " + data);
             try {
                 var trackpointsBySegments = TrackPoint.readTrackPointsBySegments(getContentResolver(), data, lastTrackPointId, protocolVersion);
                 if (trackpointsBySegments.isEmpty()) {
                     Log.d(TAG, "No new trackpoints received");
                     return;
                 }
-
+                Log.i(TAG, "in segment " + data);
                 double average = trackpointsBySegments.calcAverageSpeed();
                 double maxSpeed = trackpointsBySegments.calcMaxSpeed();
                 double averageToMaxSpeed = maxSpeed - average;
@@ -554,8 +554,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 if (isOpenTracksRecordingThisTrack && !trackColorMode.isSupportsLiveTrack()) {
                     trackColorMode = TrackColorMode.DEFAULT;
                 }
-
                 for (var trackPoints : trackpointsBySegments.segments()) {
+                    Log.i(TAG, "in trackpoints " + data);
                     if (!update) {
                         polyline = null; // cut polyline on new segment
                         if (tolerance > 0) { // smooth track
@@ -563,8 +563,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         }
                     }
                     for (var trackPoint : trackPoints) {
-                        lastTrackPointId = trackPoint.getTrackPointId();
 
+                        lastTrackPointId = trackPoint.getTrackPointId();
                         if (trackPoint.getTrackId() != lastTrackId) {
                             if (trackColorMode == TrackColorMode.BY_TRACK) {
                                 trackColor = colorCreator.nextColor();
@@ -606,6 +606,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         if (startPos == null) {
                             startPos = endPos;
                         }
+
                     }
                     trackpointsBySegments.debug().setTrackpointsDrawn(trackpointsBySegments.debug().getTrackpointsDrawn() + trackPoints.size());
                 }
