@@ -22,10 +22,15 @@ import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -96,6 +101,7 @@ import de.storchp.opentracks.osmplugin.utils.MapMode;
 import de.storchp.opentracks.osmplugin.utils.MapUtils;
 import de.storchp.opentracks.osmplugin.utils.PreferencesUtils;
 import de.storchp.opentracks.osmplugin.utils.StatisticElement;
+import de.storchp.opentracks.osmplugin.utils.StringUtils;
 import de.storchp.opentracks.osmplugin.utils.TrackColorMode;
 import de.storchp.opentracks.osmplugin.utils.TrackPointsDebug;
 import de.storchp.opentracks.osmplugin.utils.TrackStatistics;
@@ -162,7 +168,10 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         map.getMapPosition().setZoomLevel(MAP_DEFAULT_ZOOM_LEVEL);
 
         binding.map.fullscreenButton.setOnClickListener(v -> switchFullscreen());
-
+        String intentAction = getIntent().getAction();
+        if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
+            displayTable();
+        }
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             public void handleOnBackPressed() {
                 navigateUp();
@@ -175,6 +184,84 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             onNewIntent(intent);
         }
     }
+
+    private void displayTable() {
+        // Create a dummy table layout
+        TableLayout tableLayout = createDummyTableLayout();
+
+        // Get the root layout of the activity
+        ViewGroup rootLayout = findViewById(android.R.id.content);
+
+        // Create layout parameters for the table
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        layoutParams.gravity = Gravity.BOTTOM; // Position the table at the bottom of the screen
+
+        // Set margins for the table layout (optional)
+        int margin = getResources().getDimensionPixelSize(R.dimen.table_padding);
+        layoutParams.setMargins(margin, margin, margin, margin);
+
+        // Set padding and background color for the table layout
+        tableLayout.setPadding(margin, margin, margin, margin);
+        tableLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.table_background_color));
+
+        // Add the table layout to the root layout with the specified layout parameters
+        rootLayout.addView(tableLayout, layoutParams);
+    }
+
+    private TableLayout createDummyTableLayout() {
+        // Create a new TableLayout
+        TableLayout tableLayout = new TableLayout(this);
+        tableLayout.setLayoutParams(new TableLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        // Add borders to the table layout (optional)
+        tableLayout.setBackgroundResource(R.drawable.ic_table_border); // Define a drawable resource for table borders
+
+        // Create dummy table rows and add them to the table layout
+        for (int i = 0; i < 5; i++) {
+            TableRow row = new TableRow(this);
+            row.setLayoutParams(new TableRow.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
+
+            TextView textView1 = createTableCell("Trail " + (i + 1));
+            TextView textView2 = createTableCell("Chairlift " + (i + 1));
+            TextView textView3 = createTableCell("Values " + (i + 1));
+            // Add more TextViews for other data fields as needed
+
+            // Add TextViews to the table row
+            row.addView(textView1);
+            row.addView(textView2);
+            row.addView(textView3);
+
+            // Add the row to the table layout
+            tableLayout.addView(row);
+        }
+
+        return tableLayout;
+    }
+
+    private TextView createTableCell(String text) {
+        // Create a TextView for a table cell
+        TextView textView = new TextView(this);
+        textView.setLayoutParams(new TableRow.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
+        ));
+        textView.setText(text);
+        textView.setGravity(Gravity.CENTER);
+        textView.setPadding(16, 16, 16, 16); // Add padding to the cell
+        //textView.setTextColor(ContextCompat.getColor(this, R.color.text_color)); // Set text color
+        return textView;
+    }
+
 
     private void switchFullscreen() {
         showFullscreen(!fullscreenMode);
