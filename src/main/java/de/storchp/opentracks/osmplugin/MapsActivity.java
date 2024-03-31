@@ -37,6 +37,7 @@ import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.oscim.android.MapPreferences;
 import org.oscim.backend.CanvasAdapter;
 import org.oscim.core.BoundingBox;
@@ -657,8 +658,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         + boundingBox.minLongitudeE6 / 1000000.0 +","
                         + boundingBox.maxLatitudeE6 / 1000000.0 +","
                         + boundingBox.maxLongitudeE6 / 1000000.0;
-                String requestBodyData = "data=[bbox:" + bbox +"][out:json][timeout:90];(way(" + bbox+"););out geom;";
-                RequestBody body = RequestBody.create(mediaType, requestBodyData);
+
+                String skiRouteRequestBodyData = "data=[out:json][timeout:90];"+"(way[\"piste:type\"]("+
+                        bbox+");relation[\"piste:type\"]("+bbox+");" + ");" + "out geom;";
+
+                // making API request for ski route data
+                RequestBody body = RequestBody.create(mediaType, skiRouteRequestBodyData);
                 Request request = new Request.Builder()
                         .url("https://overpass-api.de/api/interpreter")
                         .method("POST", body)
@@ -667,8 +672,58 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 Response response = null;
                 try {
                     response = client.newCall(request).execute();
-                    JSONObject json = new JSONObject(response.body().string());
-                    Log.println(Log.DEBUG, TAG, String.valueOf(json));
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+                    Log.println(Log.DEBUG, TAG, String.valueOf(jsonResponse));
+
+                    // reading elements array from JSON response
+                    JSONArray elements = jsonResponse.getJSONArray("elements");
+                    for (int i = 0; i < elements.length(); i++) {
+                        JSONObject element = elements.getJSONObject(i);
+                        String type = element.getString("type");
+                        long id = element.getLong("id");
+                        JSONObject tags = element.getJSONObject("tags");
+                        JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
+                        JSONArray geometry = element.getJSONArray("geometry"); // coordinates
+                        String name = tags.optString("name", "Unnamed");
+
+                        // Now you can use these variables as needed
+                        Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
+                    }
+
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+
+                // making API request for chair lift data
+                String chairLiftRequestBodyData ="data=[out:json][timeout:90];"+
+                        "(node[\"aerialway\"=\"chair_lift\"]("+ bbox+");"+
+                        "way[\"aerialway\"=\"chair_lift\"]("+bbox+");"+
+                        "way[\"aerialway\"=\"chair_lift\"]("+ bbox+");"+
+                        ");out geom;";
+                body = RequestBody.create(mediaType, chairLiftRequestBodyData);
+                request = new Request.Builder()
+                        .url("https://overpass-api.de/api/interpreter")
+                        .method("POST", body)
+                        .addHeader("Content-Type", "text/plain")
+                        .build();
+                try {
+                    response = client.newCall(request).execute();
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+
+                    // extracting data
+                    JSONArray elements = jsonResponse.getJSONArray("elements");
+                    for (int i = 0; i < elements.length(); i++) {
+                        JSONObject element = elements.getJSONObject(i);
+                        String type = element.getString("type");
+                        long id = element.getLong("id");
+                        JSONObject tags = element.getJSONObject("tags");
+                        JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
+                        JSONArray geometry = element.getJSONArray("geometry"); // coordinates
+                        String name = tags.optString("name", "Unnamed");
+
+                        // Now you can use these variables as needed
+                        Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
+                    }
 
                 } catch (Exception e){
                     e.printStackTrace();
