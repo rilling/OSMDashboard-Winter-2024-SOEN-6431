@@ -156,6 +156,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         map = binding.map.mapView.map();
         mapPreferences = new MapPreferences(MapsActivity.class.getName(), this);
+        Log.d("map", PreferencesUtils.getMapMode().toString());
+
 
         setSupportActionBar(binding.toolbar.mapsToolbar);
 
@@ -573,14 +575,14 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
     private void readTrackpoints(Uri data, boolean update, int protocolVersion) {
         Log.i(TAG, "Loading trackpoints from " + data);
-
         synchronized (map.layers()) {
             var showPauseMarkers = PreferencesUtils.isShowPauseMarkers();
             var latLongs = new ArrayList<GeoPoint>();
             int tolerance = PreferencesUtils.getTrackSmoothingTolerance();
-
             try {
                 var trackpointsBySegments = TrackPoint.readTrackPointsBySegments(getContentResolver(), data, lastTrackPointId, protocolVersion);
+                Log.d("data", trackpointsBySegments.toString());
+
                 if (trackpointsBySegments.isEmpty()) {
                     Log.d(TAG, "No new trackpoints received");
                     return;
@@ -599,9 +601,11 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         polyline = null; // cut polyline on new segment
                         if (tolerance > 0) { // smooth track
                             trackPoints = MapUtils.decimate(tolerance, trackPoints);
+
                         }
                     }
                     for (var trackPoint : trackPoints) {
+                        Log.d("zzz", trackPoint.toString());
                         lastTrackPointId = trackPoint.getTrackPointId();
 
                         if (trackPoint.getTrackId() != lastTrackId) {
@@ -635,6 +639,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
                         if (trackPoint.isPause() && showPauseMarkers) {
                             var marker = MapUtils.createPauseMarker(this, trackPoint.getLatLong());
+                            Log.d("shrey", marker.toString());
+
                             waypointsLayer.addItem(marker);
                         }
 
@@ -644,11 +650,15 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
                         if (startPos == null) {
                             startPos = endPos;
+                            Log.d("startpos", startPos.toString());
+
                         }
                     }
                     trackpointsBySegments.debug().trackpointsDrawn += trackPoints.size();
                 }
                 trackPointsDebug.add(trackpointsBySegments.debug());
+//                Log.d("shrey", trackPointsDebug.toString());
+
             } catch (SecurityException e) {
                 Toast.makeText(MapsActivity.this, getString(R.string.error_reading_trackpoints, e.getMessage()), Toast.LENGTH_LONG).show();
                 return;
@@ -657,6 +667,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             }
 
             Log.d(TAG, "Last trackpointId=" + lastTrackPointId);
+
+
 
             if (endPos != null) {
                 setEndMarker(endPos);
@@ -712,6 +724,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             layers.remove(waypointsLayer);
         }
         waypointsLayer = createWaypointsLayer();
+        Log.d("shrey", waypointsLayer.toString());
+
         map.layers().add(waypointsLayer);
         lastWaypointId = 0;
     }

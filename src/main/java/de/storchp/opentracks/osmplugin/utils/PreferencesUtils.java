@@ -26,13 +26,13 @@ public class PreferencesUtils {
     public static void initPreferences(Context context) {
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         resources = context.getResources();
-        Log.d("initPreferences", resources.toString());
+        Log.d("initPreferences", sharedPrefs.toString());
 
 
     }
 
     private static String getKey(@StringRes int keyId) {
-        Log.d("getKey",resources.getString(keyId));
+//        Log.d("getKey",resources.getQuantityString().toString()));
 
         return resources.getString(keyId);
     }
@@ -139,7 +139,7 @@ public class PreferencesUtils {
     }
 
     private static String getString(int keyId, String defaultValue) {
-        Log.d("getString", sharedPrefs.getString(getKey(keyId), defaultValue));
+        Log.d("getString", sharedPrefs.toString());
 
         return sharedPrefs.getString(getKey(keyId), defaultValue);
     }
@@ -173,7 +173,7 @@ public class PreferencesUtils {
     }
 
     private static int getInt(int keyId, int defaultValue) {
-//        Log.d("getInt", sharedPrefs.);
+//        Log.d("getInt", String.valueOf(sharedPrefs.getInt(String.valueOf((keyId)), defaultValue)));
 
         return sharedPrefs.getInt(getKey(keyId), defaultValue);
     }

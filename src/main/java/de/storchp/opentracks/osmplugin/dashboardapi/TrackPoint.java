@@ -70,6 +70,17 @@ public class TrackPoint {
         return pause;
     }
 
+    @Override
+    public String toString() {
+        return "TrackPoint{" +
+                "trackPointId=" + trackPointId +
+                ", trackId=" + trackId +
+                ", latLong=" + latLong +
+                ", pause=" + pause +
+                ", speed=" + speed +
+                '}';
+    }
+
     /**
      * Reads the TrackPoints from the Content Uri and split by segments.
      * Pause TrackPoints and different Track IDs split the segments.

@@ -5,12 +5,19 @@
     android:background="@android:color/white">
 
     <TextView
-        android:id="@+id/option2"
+        android:id="@+id/chartLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="@string/hello_hihiiiii"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="Duration(H)"
         android:textColor="@android:color/black"
-        android:textSize="24sp" />
+        android:textSize="18sp"/>
+
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/barChart"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_below="@id/chartLabel" />
 
 </RelativeLayout>
