@@ -212,7 +212,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             for (int i=0;i<segments.size();i++) {
                 double distance = SegmentFinder.distanceToSegment(segments.get(i).start, segments.get(i).end, geoPoint);
                 if (distance < minDistance) {
-                    Log.d("MapsActivity", "Distance from point : "+i +" "+ segments.get(i).start+" " +segments.get(i).end);
                     minDistance = distance;
                     closestSegment = segments.get(i);
                 }
