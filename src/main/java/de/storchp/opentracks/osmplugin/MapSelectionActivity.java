@@ -51,9 +51,11 @@ public class MapSelectionActivity extends AppCompatActivity {
 
         binding.mapList.setAdapter(adapter);
         binding.mapList.setOnItemClickListener((listview, view, position, id) -> {
+
             var itemBinding = (MapItemBinding) view.getTag();
             itemBinding.checkbox.setChecked(!itemBinding.checkbox.isChecked());
             itemBinding.checkbox.callOnClick();
+
         });
         binding.mapList.setOnItemLongClickListener((parent, view, position, id) -> {
             var fileItem = items.get(position);

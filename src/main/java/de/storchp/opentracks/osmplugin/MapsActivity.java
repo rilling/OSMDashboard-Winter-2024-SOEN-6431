@@ -11,6 +11,7 @@ import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.net.Uri;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
@@ -56,6 +57,7 @@ import org.oscim.layers.tile.buildings.BuildingLayer;
 import org.oscim.layers.tile.vector.VectorTileLayer;
 import org.oscim.layers.tile.vector.labeling.LabelLayer;
 import org.oscim.map.Map;
+import de.storchp.opentracks.osmplugin.maps.CustomMapView;
 import org.oscim.renderer.BitmapRenderer;
 import org.oscim.renderer.GLViewport;
 import org.oscim.scalebar.DefaultMapScaleBar;
@@ -81,6 +83,7 @@ import java.io.FileOutputStream;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,6 +94,7 @@ import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
 import de.storchp.opentracks.osmplugin.dashboardapi.APIConstants;
+import de.storchp.opentracks.osmplugin.dashboardapi.SegmentFinder;
 import de.storchp.opentracks.osmplugin.dashboardapi.Track;
 import de.storchp.opentracks.osmplugin.dashboardapi.TrackPoint;
 import de.storchp.opentracks.osmplugin.dashboardapi.Waypoint;
@@ -121,6 +125,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private boolean isOpenTracksRecordingThisTrack;
     private ActivityMapsBinding binding;
     private Map map;
+    private List<TrackPoint> trackPoints = new ArrayList<>();
+
     private MapPreferences mapPreferences;
     private IRenderTheme renderTheme;
     private BoundingBox boundingBox;
@@ -145,6 +151,36 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private int strokeWidth;
     private int protocolVersion = 1;
     private TrackPointsDebug trackPointsDebug;
+    private double distanceToSegment(GeoPoint start, GeoPoint end, GeoPoint point) {
+        double A = point.getLatitude() - start.getLatitude();
+        double B = point.getLongitude() - start.getLongitude();
+        double C = end.getLatitude() - start.getLatitude();
+        double D = end.getLongitude() - start.getLongitude();
+
+        double dot = A * C + B * D;
+        double lenSq = C * C + D * D;
+        double param = -1;
+        if (lenSq != 0) { // in case of zero length line
+            param = dot / lenSq;
+        }
+
+        double xx, yy;
+
+        if (param < 0) {
+            xx = start.getLatitude();
+            yy = start.getLongitude();
+        } else if (param > 1) {
+            xx = end.getLatitude();
+            yy = end.getLongitude();
+        } else {
+            xx = start.getLatitude() + param * C;
+            yy = start.getLongitude() + param * D;
+        }
+
+        double dx = point.getLatitude() - xx;
+        double dy = point.getLongitude() - yy;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,6 +201,44 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         createMapViews();
         createLayers();
+        ((CustomMapView) binding.map.mapView).setOnMapTouchListener(geoPoint -> {
+            // Assuming you have a method getSegments() that returns a List of segment objects
+            // Each segment object should have a start and end GeoPoint
+            List<Segment> segments = getSegments(); // You need to implement this method based on your data structure
+            resetMapData();
+            Segment closestSegment = null;
+            double minDistance = Double.MAX_VALUE;
+
+            for (int i=0;i<segments.size();i++) {
+                double distance = SegmentFinder.distanceToSegment(segments.get(i).start, segments.get(i).end, geoPoint);
+                if (distance < minDistance) {
+                    Log.d("MapsActivity", "Distance from point : "+i +" "+ segments.get(i).start+" " +segments.get(i).end);
+                    minDistance = distance;
+                    closestSegment = segments.get(i);
+                }
+            }
+
+            if (closestSegment != null) {
+
+                Log.d("MapsActivity", "Closest segment start: " + closestSegment.start.getLatitude() + "," + closestSegment.start.getLongitude() +
+                        " end: " + closestSegment.end.getLatitude() + "," + closestSegment.end.getLongitude());
+                resetMapData();
+                if (polylinesLayer != null) {
+                    map.layers().remove(polylinesLayer);
+                }
+                polyline = new PathLayer(map, Color.RED, 4); // Adjust color and stroke width as needed
+
+                // Add start and end points to the PathLayer
+                polyline.addPoint(closestSegment.start);
+                polyline.addPoint(closestSegment.end);
+
+                // Add the PathLayer to the map
+                map.layers().add(polyline);
+
+                // Optionally, animate the map view to center on the segment
+                map.animator().animateTo(closestSegment.start);
+            }
+        });
         map.getMapPosition().setZoomLevel(MAP_DEFAULT_ZOOM_LEVEL);
 
         binding.map.fullscreenButton.setOnClickListener(v -> switchFullscreen());
@@ -183,6 +257,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         if (intent != null) {
             onNewIntent(intent);
         }
+
     }
 
     private void displayTable() {
@@ -618,6 +693,21 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         return Bitmap.createBitmap(bitmapSource, w, h, Bitmap.Config.ARGB_8888);
     }
+    private List<Segment> getSegments() {
+        List<Segment> segments = new ArrayList<>();
+        for (int i = 0; i < trackPoints.size() - 1; i++) {
+            TrackPoint startTrackPoint = trackPoints.get(i);
+            TrackPoint endTrackPoint = trackPoints.get(i + 1);
+
+            // Directly use the GeoPoint from your TrackPoint class
+            GeoPoint startPoint = startTrackPoint.getLatLong();
+            GeoPoint endPoint = endTrackPoint.getLatLong();
+
+            segments.add(new Segment(startPoint, endPoint));
+        }
+        return segments;
+    }
+
 
     private void readTrackpoints(Uri data, boolean update, int protocolVersion) {
         Log.i(TAG, "Loading trackpoints from " + data);
@@ -633,7 +723,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                     Log.d(TAG, "No new trackpoints received");
                     return;
                 }
-                Log.i(TAG, "in segment " + data);
                 double average = trackpointsBySegments.calcAverageSpeed();
                 double maxSpeed = trackpointsBySegments.calcMaxSpeed();
                 double averageToMaxSpeed = maxSpeed - average;
@@ -650,7 +739,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         }
                     }
                     for (var trackPoint : trackPoints) {
-
+                        this.trackPoints.add(trackPoint);
                         lastTrackPointId = trackPoint.getTrackPointId();
                         if (trackPoint.getTrackId() != lastTrackId) {
                             if (trackColorMode == TrackColorMode.BY_TRACK) {
@@ -672,7 +761,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                             }
                         } else {
                             if (polyline == null) {
-                                Log.d(TAG, "Continue new segment.");
                                 polyline = addNewPolyline(trackColor);
                             }
                         }
@@ -883,6 +971,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         mapPreferences.load(map);
         binding.map.mapView.onResume();
+
     }
 
     @Override
