@@ -654,13 +654,13 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 OkHttpClient client = new OkHttpClient().newBuilder()
                         .build();
                 MediaType mediaType = MediaType.parse("text/plain");
-                String bbox = boundingBox.minLatitudeE6 / 1000000.0 +","
-                        + boundingBox.minLongitudeE6 / 1000000.0 +","
-                        + boundingBox.maxLatitudeE6 / 1000000.0 +","
+                String bbox = boundingBox.minLatitudeE6 / 1000000.0 + ","
+                        + boundingBox.minLongitudeE6 / 1000000.0 + ","
+                        + boundingBox.maxLatitudeE6 / 1000000.0 + ","
                         + boundingBox.maxLongitudeE6 / 1000000.0;
 
-                String skiRouteRequestBodyData = "data=[out:json][timeout:90];"+"(way[\"piste:type\"]("+
-                        bbox+");relation[\"piste:type\"]("+bbox+");" + ");" + "out geom;";
+                String skiRouteRequestBodyData = "data=[out:json][timeout:90];" + "(way[\"piste:type\"](" +
+                        bbox + ");relation[\"piste:type\"](" + bbox + ");" + ");" + "out geom;";
 
                 // making API request for ski route data
                 RequestBody body = RequestBody.create(mediaType, skiRouteRequestBodyData);
@@ -685,20 +685,29 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
                         JSONArray geometry = element.getJSONArray("geometry"); // coordinates
                         String name = tags.optString("name", "Unnamed");
-
+                        String trail_name = "";
+                        try {
+                            if (tags.getString("name") != null && tags.getString("piste:type") != null) {
+                                if (tags.getString("piste:type").equals("downhill") && !tags.getString("name").equals("") ) {
+                                    trail_name = tags.getString("name");
+                                }
+                            }
+                        } catch (Exception e) {
+                            Log.d(TAG, "Trail name or json data for trail is not available");
+                        }
                         // Now you can use these variables as needed
                         Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
                     }
 
-                } catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
                 // making API request for chair lift data
-                String chairLiftRequestBodyData ="data=[out:json][timeout:90];"+
-                        "(node[\"aerialway\"=\"chair_lift\"]("+ bbox+");"+
-                        "way[\"aerialway\"=\"chair_lift\"]("+bbox+");"+
-                        "way[\"aerialway\"=\"chair_lift\"]("+ bbox+");"+
+                String chairLiftRequestBodyData = "data=[out:json][timeout:90];" +
+                        "(node[\"aerialway\"=\"chair_lift\"](" + bbox + ");" +
+                        "way[\"aerialway\"=\"chair_lift\"](" + bbox + ");" +
+                        "way[\"aerialway\"=\"chair_lift\"](" + bbox + ");" +
                         ");out geom;";
                 body = RequestBody.create(mediaType, chairLiftRequestBodyData);
                 request = new Request.Builder()
@@ -720,12 +729,21 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
                         JSONArray geometry = element.getJSONArray("geometry"); // coordinates
                         String name = tags.optString("name", "Unnamed");
-
+                        String trail_name = "";
+                        try {
+                            if (tags.getString("name") != null && tags.getString("piste:type") != null) {
+                                if (tags.getString("piste:type").equals("downhill") && !tags.getString("name").equals("") ) {
+                                    trail_name = tags.getString("name");
+                                }
+                            }
+                        } catch (Exception e) {
+                            Log.d(TAG, "Trail name or json data for trail is not available");
+                        }
                         // Now you can use these variables as needed
                         Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
                     }
 
-                } catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
