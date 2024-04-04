@@ -278,8 +278,10 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         layoutParams.setMargins(margin, margin, margin, margin);
 
         // Set padding and background color for the table layout
+        margin = getResources().getDimensionPixelSize(R.dimen.table_padding);
         tableLayout.setPadding(margin, margin, margin, margin);
         tableLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.table_background_color));
+        tableLayout.setBackgroundResource(R.drawable.ic_table_border);
 
         // Add the table layout to the root layout with the specified layout parameters
         rootLayout.addView(tableLayout, layoutParams);
@@ -331,8 +333,9 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         ));
         textView.setText(text);
         textView.setGravity(Gravity.CENTER);
-        textView.setPadding(16, 16, 16, 16); // Add padding to the cell
-        //textView.setTextColor(ContextCompat.getColor(this, R.color.text_color)); // Set text color
+        textView.setPadding(10, 10, 10, 10); // Add padding to the cell
+        textView.setBackgroundColor(ContextCompat.getColor(this, R.color.cell_color)); // Add color to cells
+        textView.setTextColor(ContextCompat.getColor(this, R.color.text_color)); // Set text color
         return textView;
     }
 
