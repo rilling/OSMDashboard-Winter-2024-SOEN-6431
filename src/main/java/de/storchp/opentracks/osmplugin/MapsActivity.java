@@ -291,11 +291,21 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         tableLayout.addView(headerRow);
         drawTableLine(tableLayout);
 
+        long totalTimeMillis = trackToBePopulated.totalTimeMillis();
+        long totalHours = totalTimeMillis / (1000 * 60 * 60); // Convert milliseconds to hours
+
+        double totalDistanceMeter = trackToBePopulated.totalDistanceMeter();
+        double totalDistanceKm = totalDistanceMeter / 1000; // Convert meters to kilometers
+        String formattedTotalDistance = String.format("%.2f", totalDistanceKm);
+
+        double avgSpeedMeterPerSecond = trackToBePopulated.avgSpeedMeterPerSecond();
+        String formattedAvgSpeed = String.format("%.2f", avgSpeedMeterPerSecond);
+
         createTableRow("Trail Name", trackToBePopulated.trackname(), tableLayout);
-        createTableRow("Trail Distance", String.valueOf(trackToBePopulated.totalDistanceMeter()), tableLayout);
-        createTableRow("Trail Elevation", String.valueOf(trackToBePopulated.maxElevationMeter()), tableLayout);
-        createTableRow("Average Speed", String.valueOf(trackToBePopulated.avgSpeedMeterPerSecond()), tableLayout);
-        createTableRow("Time Taken", String.valueOf(trackToBePopulated.totalTimeMillis()), tableLayout);
+        createTableRow("Trail Distance", formattedTotalDistance + " km", tableLayout);
+        createTableRow("Trail Elevation", trackToBePopulated.maxElevationMeter() + " m", tableLayout);
+        createTableRow("Average Speed", formattedAvgSpeed + " m/s", tableLayout);
+        createTableRow("Time Taken", totalHours + " hrs", tableLayout);
         //createTableRow("Slope", "slope %", tableLayout);
     }
 
