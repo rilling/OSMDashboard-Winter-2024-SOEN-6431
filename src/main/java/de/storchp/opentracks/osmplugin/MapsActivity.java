@@ -58,7 +58,9 @@ import org.oscim.layers.tile.buildings.BuildingLayer;
 import org.oscim.layers.tile.vector.VectorTileLayer;
 import org.oscim.layers.tile.vector.labeling.LabelLayer;
 import org.oscim.map.Map;
-import de.storchp.opentracks.osmplugin.maps.CustomMapView;
+
+import de.storchp.opentracks.osmplugin.maps.TrailSelectionMapView;
+
 import org.oscim.renderer.BitmapRenderer;
 import org.oscim.renderer.GLViewport;
 import org.oscim.scalebar.DefaultMapScaleBar;
@@ -151,36 +153,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private int strokeWidth;
     private int protocolVersion = 1;
     private TrackPointsDebug trackPointsDebug;
-    private double distanceToSegment(GeoPoint start, GeoPoint end, GeoPoint point) {
-        double A = point.getLatitude() - start.getLatitude();
-        double B = point.getLongitude() - start.getLongitude();
-        double C = end.getLatitude() - start.getLatitude();
-        double D = end.getLongitude() - start.getLongitude();
-
-        double dot = A * C + B * D;
-        double lenSq = C * C + D * D;
-        double param = -1;
-        if (lenSq != 0) { // in case of zero length line
-            param = dot / lenSq;
-        }
-
-        double xx, yy;
-
-        if (param < 0) {
-            xx = start.getLatitude();
-            yy = start.getLongitude();
-        } else if (param > 1) {
-            xx = end.getLatitude();
-            yy = end.getLongitude();
-        } else {
-            xx = start.getLatitude() + param * C;
-            yy = start.getLongitude() + param * D;
-        }
-
-        double dx = point.getLatitude() - xx;
-        double dy = point.getLongitude() - yy;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,7 +173,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         createMapViews();
         createLayers();
-        ((CustomMapView) binding.map.mapView).setOnMapTouchListener(geoPoint -> {
+        ((TrailSelectionMapView) binding.map.mapView).setOnMapTouchListener(geoPoint -> {
             // Assuming you have a method getSegments() that returns a List of segment objects
             // Each segment object should have a start and end GeoPoint
             List<Segment> segments = getSegments(); // You need to implement this method based on your data structure
@@ -209,7 +181,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             Segment closestSegment = null;
             double minDistance = Double.MAX_VALUE;
 
-            for (int i=0;i<segments.size();i++) {
+            for (int i = 0; i < segments.size(); i++) {
                 double distance = SegmentFinder.distanceToSegment(segments.get(i).start, segments.get(i).end, geoPoint);
                 if (distance < minDistance) {
                     minDistance = distance;
@@ -218,7 +190,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             }
 
             if (closestSegment != null) {
-
                 Log.d("MapsActivity", "Closest segment start: " + closestSegment.start.getLatitude() + "," + closestSegment.start.getLongitude() +
                         " end: " + closestSegment.end.getLatitude() + "," + closestSegment.end.getLongitude());
                 resetMapData();
@@ -364,6 +335,37 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         textView.setBackgroundColor(ContextCompat.getColor(this, R.color.cell_color)); // Add color to cells
         textView.setTextColor(ContextCompat.getColor(this, R.color.text_color)); // Set text color
         return textView;
+    }
+
+    private double distanceToSegment(GeoPoint start, GeoPoint end, GeoPoint point) {
+        double A = point.getLatitude() - start.getLatitude();
+        double B = point.getLongitude() - start.getLongitude();
+        double C = end.getLatitude() - start.getLatitude();
+        double D = end.getLongitude() - start.getLongitude();
+
+        double dot = A * C + B * D;
+        double lenSq = C * C + D * D;
+        double param = -1;
+        if (lenSq != 0) { // in case of zero length line
+            param = dot / lenSq;
+        }
+
+        double xx, yy;
+
+        if (param < 0) {
+            xx = start.getLatitude();
+            yy = start.getLongitude();
+        } else if (param > 1) {
+            xx = end.getLatitude();
+            yy = end.getLongitude();
+        } else {
+            xx = start.getLatitude() + param * C;
+            yy = start.getLongitude() + param * D;
+        }
+
+        double dx = point.getLatitude() - xx;
+        double dy = point.getLongitude() - yy;
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
 
@@ -722,6 +724,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         return Bitmap.createBitmap(bitmapSource, w, h, Bitmap.Config.ARGB_8888);
     }
+
     private List<Segment> getSegments() {
         List<Segment> segments = new ArrayList<>();
         for (int i = 0; i < trackPoints.size() - 1; i++) {
