@@ -154,6 +154,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private int protocolVersion = 1;
     private TrackPointsDebug trackPointsDebug;
 
+    private List<Track> storedTracksData = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -212,10 +214,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         map.getMapPosition().setZoomLevel(MAP_DEFAULT_ZOOM_LEVEL);
 
         binding.map.fullscreenButton.setOnClickListener(v -> switchFullscreen());
-        String intentAction = getIntent().getAction();
-        if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
-            displaySelectedTrailTable();
-        }
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             public void handleOnBackPressed() {
                 navigateUp();
@@ -227,7 +225,10 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         if (intent != null) {
             onNewIntent(intent);
         }
-
+        String intentAction = getIntent().getAction();
+        if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
+            displaySelectedTrailTable();
+        }
     }
 
     private void displaySelectedTrailTable() {
@@ -271,6 +272,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     }
 
     private void populateSelectedTrailDetails(TableLayout tableLayout) {
+        List<Track> tracksData = getTracksDataForTable();
+        Track trackToBePopulated = tracksData.get(0);
         drawTableLine(tableLayout);
         TableRow headerRow = new TableRow(this);
         headerRow.setLayoutParams(new TableRow.LayoutParams(
@@ -288,10 +291,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         tableLayout.addView(headerRow);
         drawTableLine(tableLayout);
 
-        createTableRow("Trail Name", "Trail1 ", tableLayout);
-        createTableRow("Chairlift Name", "Chairlift 1 ", tableLayout);
-        createTableRow("Speed", "segment speed", tableLayout);
-        createTableRow("Slope", "slope %", tableLayout);
+        createTableRow("Trail Name", trackToBePopulated.trackname(), tableLayout);
+        createTableRow("Trail Distance", String.valueOf(trackToBePopulated.totalDistanceMeter()), tableLayout);
+        createTableRow("Trail Elevation", String.valueOf(trackToBePopulated.maxElevationMeter()), tableLayout);
+        createTableRow("Average Speed", String.valueOf(trackToBePopulated.avgSpeedMeterPerSecond()), tableLayout);
+        createTableRow("Time Taken", String.valueOf(trackToBePopulated.totalTimeMillis()), tableLayout);
+        //createTableRow("Slope", "slope %", tableLayout);
     }
 
     private void createTableRow(String headerName, String headerDetails, TableLayout tableLayout) {
@@ -335,6 +340,11 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         textView.setBackgroundColor(ContextCompat.getColor(this, R.color.cell_color)); // Add color to cells
         textView.setTextColor(ContextCompat.getColor(this, R.color.text_color)); // Set text color
         return textView;
+    }
+
+    private List<Track> getTracksDataForTable() {
+        //TODO: Data expected from Group 16, including tracks details, segments details for each track, speed, chairlift names and other statistics
+        return this.storedTracksData;
     }
 
     private double distanceToSegment(GeoPoint start, GeoPoint end, GeoPoint point) {
@@ -963,6 +973,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
     private void readTracks(Uri data) {
         var tracks = Track.readTracks(getContentResolver(), data);
+        this.storedTracksData = tracks;
         if (!tracks.isEmpty()) {
             var statistics = new TrackStatistics(tracks);
             removeStatisticElements();
