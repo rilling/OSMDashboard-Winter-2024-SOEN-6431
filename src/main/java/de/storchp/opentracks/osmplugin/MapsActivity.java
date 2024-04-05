@@ -296,7 +296,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         drawTableLine(tableLayout);
 
         long totalTimeMillis = trackToBePopulated.totalTimeMillis();
-        long totalHours = totalTimeMillis / (1000 * 60 * 60); // Convert milliseconds to hours
+        long totalHours = Math.round((double) totalTimeMillis / (1000 * 60 * 60)); // Convert milliseconds to hours
 
         double totalDistanceMeter = trackToBePopulated.totalDistanceMeter();
         double totalDistanceKm = totalDistanceMeter / 1000; // Convert meters to kilometers
