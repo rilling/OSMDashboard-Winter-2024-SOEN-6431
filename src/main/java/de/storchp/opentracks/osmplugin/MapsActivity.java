@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
 import android.text.SpannableString;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.util.DisplayMetrics;
@@ -311,6 +312,49 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         createTableRow("Time Taken", totalHours + " hrs", tableLayout);
         //createTableRow("Slope", "slope %", tableLayout);
     }
+
+
+    /** @author sadiq
+     *  Method to validate track information data
+     */
+
+    private boolean validateDataFromTracksData(List<Track> tracksData) {
+        // Check if tracksData is not null and contains at least one track
+        if (tracksData == null || tracksData.isEmpty()) {
+            System.out.println("Tracks list does not contain any track data!");
+            return false;
+        }
+
+        // Get the first track from the list for validation
+        Track trackToBeValidated = tracksData.get(0);
+
+        // Check if the track name is not empty
+        if (TextUtils.isEmpty(trackToBeValidated.trackname())) {
+            System.out.println("Track name is NULL!");
+            return false;
+        }
+
+        // Check if total distance and max elevation are positive values
+        if (trackToBeValidated.totalDistanceMeter() <= 0 && trackToBeValidated.maxElevationMeter() <= 0) {
+            System.out.println("Distance and Elevation are invalid!");
+            return false;
+        }
+
+        // Check if average speed is a valid positive value
+        if (trackToBeValidated.avgSpeedMeterPerSecond() < 0) {
+            System.out.println("Average speed is invalid!");
+            return false;
+        }
+
+        // Check if total time is a valid positive value
+        if (trackToBeValidated.totalTimeMillis() <= 0) {
+            System.out.println("Total time value is invalid!");
+            return false;
+        }
+
+        return true; // Data passes all validation checks
+    }
+
 
     private void createTableRow(String headerName, String headerDetails, TableLayout tableLayout) {
         TableRow trailNameRow = new TableRow(this);
