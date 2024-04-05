@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
@@ -105,7 +106,6 @@ import de.storchp.opentracks.osmplugin.utils.MapMode;
 import de.storchp.opentracks.osmplugin.utils.MapUtils;
 import de.storchp.opentracks.osmplugin.utils.PreferencesUtils;
 import de.storchp.opentracks.osmplugin.utils.StatisticElement;
-import de.storchp.opentracks.osmplugin.utils.StringUtils;
 import de.storchp.opentracks.osmplugin.utils.TrackColorMode;
 import de.storchp.opentracks.osmplugin.utils.TrackPointsDebug;
 import de.storchp.opentracks.osmplugin.utils.TrackStatistics;
@@ -243,7 +243,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         binding.map.fullscreenButton.setOnClickListener(v -> switchFullscreen());
         String intentAction = getIntent().getAction();
         if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
-            displayTable();
+            displaySelectedTrailTable();
         }
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             public void handleOnBackPressed() {
@@ -259,9 +259,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
     }
 
-    private void displayTable() {
-        // Create a dummy table layout
-        TableLayout tableLayout = createDummyTableLayout();
+    private void displaySelectedTrailTable() {
+        TableLayout tableLayout = createTableLayout();
 
         // Get the root layout of the activity
         ViewGroup rootLayout = findViewById(android.R.id.content);
@@ -287,7 +286,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         rootLayout.addView(tableLayout, layoutParams);
     }
 
-    private TableLayout createDummyTableLayout() {
+    private TableLayout createTableLayout() {
         // Create a new TableLayout
         TableLayout tableLayout = new TableLayout(this);
         tableLayout.setLayoutParams(new TableLayout.LayoutParams(
@@ -295,32 +294,60 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 ViewGroup.LayoutParams.WRAP_CONTENT
         ));
 
-        // Add borders to the table layout (optional)
         tableLayout.setBackgroundResource(R.drawable.ic_table_border); // Define a drawable resource for table borders
-
-        // Create dummy table rows and add them to the table layout
-        for (int i = 0; i < 5; i++) {
-            TableRow row = new TableRow(this);
-            row.setLayoutParams(new TableRow.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            ));
-
-            TextView textView1 = createTableCell("Trail " + (i + 1));
-            TextView textView2 = createTableCell("Chairlift " + (i + 1));
-            TextView textView3 = createTableCell("Values " + (i + 1));
-            // Add more TextViews for other data fields as needed
-
-            // Add TextViews to the table row
-            row.addView(textView1);
-            row.addView(textView2);
-            row.addView(textView3);
-
-            // Add the row to the table layout
-            tableLayout.addView(row);
-        }
-
+        populateSelectedTrailDetails(tableLayout);
         return tableLayout;
+    }
+
+    private void populateSelectedTrailDetails(TableLayout tableLayout) {
+        drawTableLine(tableLayout);
+        TableRow headerRow = new TableRow(this);
+        headerRow.setLayoutParams(new TableRow.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        // Create TextViews for header row
+        TextView attributeHeader = createTableCell("Attribute");
+        TextView detailsHeader = createTableCell("Details");
+        attributeHeader.setTypeface(null, Typeface.BOLD);
+        detailsHeader.setTypeface(null, Typeface.BOLD);
+        headerRow.addView(attributeHeader);
+        headerRow.addView(detailsHeader);
+        tableLayout.addView(headerRow);
+        drawTableLine(tableLayout);
+
+        createTableRow("Trail Name", "Trail1 ", tableLayout);
+        createTableRow("Chairlift Name", "Chairlift 1 ", tableLayout);
+        createTableRow("Speed", "segment speed", tableLayout);
+        createTableRow("Slope", "slope %", tableLayout);
+    }
+
+    private void createTableRow(String headerName, String headerDetails, TableLayout tableLayout) {
+        TableRow trailNameRow = new TableRow(this);
+        trailNameRow.setLayoutParams(new TableRow.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        TextView trailNameHeader = createTableCell(headerName);
+        TextView trailNameValue = createTableCell(headerDetails);
+        // Add TextViews to the table trailNameRow
+        trailNameRow.addView(trailNameHeader);
+        trailNameRow.addView(trailNameValue);
+        tableLayout.addView(trailNameRow);
+        drawTableLine(tableLayout);
+    }
+
+    private void drawTableLine(TableLayout tableLayout) {
+        // Add a horizontal line
+        View line = new View(this);
+        line.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                2 // Height of the line in pixels
+        ));
+        line.setBackgroundColor(Color.BLACK);
+        tableLayout.addView(line);
     }
 
     private TextView createTableCell(String text) {
@@ -333,7 +360,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         ));
         textView.setText(text);
         textView.setGravity(Gravity.CENTER);
-        textView.setPadding(10, 10, 10, 10); // Add padding to the cell
+        textView.setPadding(5, 5, 5, 5); // Add padding to the cell
         textView.setBackgroundColor(ContextCompat.getColor(this, R.color.cell_color)); // Add color to cells
         textView.setTextColor(ContextCompat.getColor(this, R.color.text_color)); // Set text color
         return textView;
