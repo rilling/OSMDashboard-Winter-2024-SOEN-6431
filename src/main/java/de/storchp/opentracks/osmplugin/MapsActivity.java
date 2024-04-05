@@ -175,6 +175,21 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         createMapViews();
         createLayers();
+        map.getMapPosition().setZoomLevel(MAP_DEFAULT_ZOOM_LEVEL);
+
+        binding.map.fullscreenButton.setOnClickListener(v -> switchFullscreen());
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            public void handleOnBackPressed() {
+                navigateUp();
+            }
+        });
+
+        // Get the intent that started this activity
+        var intent = getIntent();
+        if (intent != null) {
+            onNewIntent(intent);
+        }
+
         ((TrailSelectionMapView) binding.map.mapView).setOnMapTouchListener(geoPoint -> {
             // Assuming you have a method getSegments() that returns a List of segment objects
             // Each segment object should have a start and end GeoPoint
@@ -209,26 +224,14 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
                 // Optionally, animate the map view to center on the segment
                 map.animator().animateTo(closestSegment.start);
-            }
-        });
-        map.getMapPosition().setZoomLevel(MAP_DEFAULT_ZOOM_LEVEL);
 
-        binding.map.fullscreenButton.setOnClickListener(v -> switchFullscreen());
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            public void handleOnBackPressed() {
-                navigateUp();
+                String intentAction = getIntent().getAction();
+                if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
+                    displaySelectedTrailTable();
+                }
             }
         });
 
-        // Get the intent that started this activity
-        var intent = getIntent();
-        if (intent != null) {
-            onNewIntent(intent);
-        }
-        String intentAction = getIntent().getAction();
-        if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
-            displaySelectedTrailTable();
-        }
     }
 
     private void displaySelectedTrailTable() {
