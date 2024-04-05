@@ -539,6 +539,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             var showPauseMarkers = PreferencesUtils.isShowPauseMarkers();
             var latLongs = new ArrayList<GeoPoint>();
             int tolerance = PreferencesUtils.getTrackSmoothingTolerance();
+            GeoPoint startPoint = null; // Start point of the track
+            GeoPoint endPoint = null; // End point of the track
 
             try {
                 var trackpointsBySegments = TrackPoint.readTrackPointsBySegments(getContentResolver(), data, lastTrackPointId, protocolVersion);
@@ -571,17 +573,17 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                             }
                             lastTrackId = trackPoint.getTrackId();
                             polyline = null; // reset current polyline when trackId changes
-                            startPos = null;
-                            endPos = null;
+                            startPoint = null;
+                            endPoint = null;
                         }
 
                         if (trackColorMode == TrackColorMode.BY_SPEED) {
                             trackColor = MapUtils.getTrackColorBySpeed(average, averageToMaxSpeed, trackPoint);
                             polyline = addNewPolyline(trackColor);
-                            if (endPos != null) {
-                                polyline.addPoint(endPos);
-                            } else if (startPos != null) {
-                                polyline.addPoint(startPos);
+                            if (endPoint != null) {
+                                polyline.addPoint(endPoint);
+                            } else if (startPoint != null) {
+                                polyline.addPoint(startPoint);
                             }
                         } else {
                             if (polyline == null) {
@@ -590,9 +592,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                             }
                         }
 
-                        endPos = trackPoint.getLatLong();
-                        polyline.addPoint(endPos);
-                        movementDirection.updatePos(endPos);
+                        endPoint = trackPoint.getLatLong();
+                        polyline.addPoint(endPoint);
+
+                        if (startPoint == null) {
+                            startPoint = endPoint; // Set the start point initially
+                        }
 
                         if (trackPoint.isPause() && showPauseMarkers) {
                             var marker = MapUtils.createPauseMarker(this, trackPoint.getLatLong());
@@ -600,11 +605,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         }
 
                         if (!update) {
-                            latLongs.add(endPos);
-                        }
-
-                        if (startPos == null) {
-                            startPos = endPos;
+                            latLongs.add(endPoint);
                         }
                     }
                     trackpointsBySegments.debug().setTrackpointsDrawn(trackpointsBySegments.debug().getTrackpointsDrawn() + trackPoints.size());
