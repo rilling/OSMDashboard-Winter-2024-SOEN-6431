@@ -317,18 +317,20 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         String formattedTotalDistance = String.format("%.2f", totalDistanceKm);
 
         double avgSpeedMeterPerSecond = trackToBePopulated.avgSpeedMeterPerSecond();
-        String formattedAvgSpeed = String.format("%.2f", avgSpeedMeterPerSecond);
+        double avgSpeedKmPerHour = avgSpeedMeterPerSecond * 3.6; // Convert m/s to km/h
+        String formattedAvgSpeed = String.format("%.2f", avgSpeedKmPerHour);
 
         double segmentSpeed = selectedSegmentInTrack.getSpeed();
-        String formattedSegmentSpeed = String.format("%.2f", segmentSpeed);
+        double segmentSpeedKmPerHour = segmentSpeed * 3.6; // Convert m/s to km/h
+        String formattedSegmentSpeed = String.format("%.2f", segmentSpeedKmPerHour);
 
         createTableRow("Trail Name", trackToBePopulated.trackname(), tableLayout);
         createTableRow("Trail Distance", formattedTotalDistance + " km", tableLayout);
         createTableRow("Trail Elevation", trackToBePopulated.maxElevationMeter() + " m", tableLayout);
-        createTableRow("Average Trail Speed", formattedAvgSpeed + " m/s", tableLayout);
+        createTableRow("Average Trail Speed", formattedAvgSpeed + " km/h", tableLayout);
         createTableRow("Time Taken", totalHours + " hrs", tableLayout);
         createTableRow("Segment Number", String.valueOf(selectedSegmentInTrack.getTrackPointId()), tableLayout);
-        createTableRow("Segment Speed", formattedSegmentSpeed + " m/s", tableLayout);
+        createTableRow("Segment Speed", formattedSegmentSpeed + " km/h", tableLayout);
         //createTableRow("Slope", "slope %", tableLayout);
     }
 
