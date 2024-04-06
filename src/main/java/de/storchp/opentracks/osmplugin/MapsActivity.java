@@ -218,6 +218,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 TrackPoint selectedSegmentInTrack = findSegmentClosestToSelectedSegment(closestSegment);
                 var trackColorMode = PreferencesUtils.getTrackColorMode();
                 int segmentColor = trackColor;
+                int currentStrokeWidth = Math.max(strokeWidth, 4);
                 if(trackColorMode == TrackColorMode.BY_SPEED && this.storedTrackPointsBySegments != null){
                     double average = this.storedTrackPointsBySegments.calcAverageSpeed();
                     double maxSpeed = this.storedTrackPointsBySegments.calcMaxSpeed();
@@ -226,7 +227,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
                 }
 
-                polyline = new PathLayer(map, segmentColor, 4); // Adjust color and stroke width as needed
+
+                polyline = new PathLayer(map, segmentColor, currentStrokeWidth); // Adjust color and stroke width as needed
 
                 // Add start and end points to the PathLayer
                 polyline.addPoint(closestSegment.start);
