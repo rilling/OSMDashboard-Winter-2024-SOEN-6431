@@ -231,10 +231,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 // Add start and end points to the PathLayer
                 polyline.addPoint(closestSegment.start);
                 polyline.addPoint(closestSegment.end);
-
                 // Add the PathLayer to the map
                 map.layers().add(polyline);
-
                 // Optionally, animate the map view to center on the segment
                 map.animator().animateTo(closestSegment.start);
                 String intentAction = getIntent().getAction();
@@ -958,6 +956,9 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         // polylines
         if (polylinesLayer != null) {
             layers.remove(polylinesLayer);
+        }
+        if(polyline != null){
+            map.layers().remove(polyline);
         }
         polylinesLayer = new GroupLayer(map);
         layers.add(polylinesLayer);
