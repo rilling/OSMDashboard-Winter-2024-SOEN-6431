@@ -216,8 +216,15 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                     map.layers().remove(polylinesLayer);
                 }
                 TrackPoint selectedSegmentInTrack = findSegmentClosestToSelectedSegment(closestSegment);
-                //TODO: validate if this is fine or we need to calculate speed differences in trackpoint
-                int segmentColor = getColorBasedOnSpeed(selectedSegmentInTrack.getSpeed());
+                var trackColorMode = PreferencesUtils.getTrackColorMode();
+                int segmentColor = trackColor;
+                if(trackColorMode == TrackColorMode.BY_SPEED && this.storedTrackPointsBySegments != null){
+                    double average = this.storedTrackPointsBySegments.calcAverageSpeed();
+                    double maxSpeed = this.storedTrackPointsBySegments.calcMaxSpeed();
+                    double averageToMaxSpeed = maxSpeed - average;
+                    segmentColor = MapUtils.getTrackColorBySpeed(average, averageToMaxSpeed, selectedSegmentInTrack);
+
+                }
 
                 polyline = new PathLayer(map, segmentColor, 4); // Adjust color and stroke width as needed
 
@@ -237,33 +244,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             }
         });
 
-    }
-
-    // Method to calculate color based on speed and log the color
-    private int getColorBasedOnSpeed(double speed) {
-        speed = speed * 3.6; // Convert m/s to km/h
-
-        // Assuming speed is in km/h, adjust thresholds as necessary
-        final double LOW_SPEED_THRESHOLD = 10.0;
-        final double HIGH_SPEED_THRESHOLD = 30.0;
-
-        int color;
-        if (speed < LOW_SPEED_THRESHOLD) {
-            color = Color.BLUE; // Low speed
-        } else if (speed > HIGH_SPEED_THRESHOLD) {
-            color = Color.RED; // High speed
-        } else {
-            // Calculate gradient color between BLUE and RED based on speed
-            double ratio = (speed - LOW_SPEED_THRESHOLD) / (HIGH_SPEED_THRESHOLD - LOW_SPEED_THRESHOLD);
-            int red = (int) ((Color.red(Color.RED) * ratio) + (Color.red(Color.BLUE) * (1 - ratio)));
-            int green = (int) ((Color.green(Color.RED) * ratio) + (Color.green(Color.BLUE) * (1 - ratio)));
-            int blue = (int) ((Color.blue(Color.RED) * ratio) + (Color.blue(Color.BLUE) * (1 - ratio)));
-            color = Color.rgb(red, green, blue);
-        }
-
-        // Log the color and speed
-        Log.d(TAG, "Segment speed: " + speed + " km/h, Color: RGB(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ")");
-        return color;
     }
 
     private TrackPoint findSegmentClosestToSelectedSegment(Segment closestSegment) {
