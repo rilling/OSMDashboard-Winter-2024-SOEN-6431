@@ -91,8 +91,10 @@ import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
 import de.storchp.opentracks.osmplugin.dashboardapi.APIConstants;
+import de.storchp.opentracks.osmplugin.dashboardapi.SkiElements;
 import de.storchp.opentracks.osmplugin.dashboardapi.Track;
 import de.storchp.opentracks.osmplugin.dashboardapi.TrackPoint;
+import de.storchp.opentracks.osmplugin.dashboardapi.Trail;
 import de.storchp.opentracks.osmplugin.dashboardapi.Waypoint;
 import de.storchp.opentracks.osmplugin.databinding.ActivityMapsBinding;
 import de.storchp.opentracks.osmplugin.maps.MovementDirection;
@@ -685,16 +687,9 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
                         JSONArray geometry = element.getJSONArray("geometry"); // coordinates
                         String name = tags.optString("name", "Unnamed");
-                        String trail_name = "";
-                        try {
-                            if (tags.getString("name") != null && tags.getString("piste:type") != null) {
-                                if (tags.getString("piste:type").equals("downhill") && !tags.getString("name").equals("") ) {
-                                    trail_name = tags.getString("name");
-                                }
-                            }
-                        } catch (Exception e) {
-                            Log.d(TAG, "Trail name or json data for trail is not available");
-                        }
+                        Trail trail = Trail.getInstance(); // singleton class
+                        SkiElements skiElements = SkiElements.parseJsonElement(element); // has ski-elements in the form of list
+                        trail.addTrailData(skiElements); // adds ski-element list in the trails
                         // Now you can use these variables as needed
                         Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
                     }
@@ -729,16 +724,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
                         JSONArray geometry = element.getJSONArray("geometry"); // coordinates
                         String name = tags.optString("name", "Unnamed");
-                        String trail_name = "";
-                        try {
-                            if (tags.getString("name") != null && tags.getString("piste:type") != null) {
-                                if (tags.getString("piste:type").equals("downhill") && !tags.getString("name").equals("") ) {
-                                    trail_name = tags.getString("name");
-                                }
-                            }
-                        } catch (Exception e) {
-                            Log.d(TAG, "Trail name or json data for trail is not available");
-                        }
                         // Now you can use these variables as needed
                         Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
                     }
