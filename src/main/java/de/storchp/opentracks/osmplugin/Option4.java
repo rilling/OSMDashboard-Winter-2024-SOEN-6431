@@ -71,4 +71,61 @@ public class Option4 extends MapsActivity {
         }
         return entries;
     }
+    
+    private void setUpChart(LineChart lineChart, List<Entry> entries) {
+        LineDataSet dataSet = new LineDataSet(entries, "Moving Average Speed");
+        dataSet.setColor(Color.BLUE);
+        dataSet.setValueTextColor(Color.BLACK);
+        dataSet.setLineWidth(2.5f);
+        dataSet.setCircleRadius(4f);
+        dataSet.setCircleColor(Color.BLUE);
+        dataSet.setDrawValues(false);
+        dataSet.setDrawFilled(false);
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
+
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawAxisLine(true);
+        xAxis.setDrawGridLines(true);
+        xAxis.setGridColor(Color.LTGRAY);
+        xAxis.setGridLineWidth(1f);
+        xAxis.setTextColor(Color.BLACK);
+        xAxis.setTextSize(12f);
+        xAxis.setAxisLineWidth(2f);
+
+        YAxis leftAxis = lineChart.getAxisLeft();
+        leftAxis.setTextColor(Color.BLACK);
+        leftAxis.setGridColor(Color.LTGRAY);
+        leftAxis.setGridLineWidth(1f);
+        leftAxis.setTextSize(12f);
+        leftAxis.setDrawGridLines(true);
+        leftAxis.setDrawAxisLine(true);
+        leftAxis.setAxisLineWidth(2f);
+
+        Legend legend = lineChart.getLegend();
+        legend.setEnabled(true);
+        legend.setTextColor(Color.BLACK);
+        legend.setTextSize(12f);
+        legend.setForm(Legend.LegendForm.LINE);
+        legend.setFormSize(10f);
+        legend.setXEntrySpace(5f);
+        legend.setFormToTextSpace(5f);
+
+        lineChart.setTouchEnabled(false);
+        lineChart.getAxisRight().setEnabled(false);
+
+        Description description = new Description();
+        description.setText("Time");
+        lineChart.setDescription(description);
+        description.setTextColor(Color.BLACK);
+        description.setTextSize(12f);
+
+        lineChart.setTouchEnabled(true);
+        lineChart.setPinchZoom(true);
+        lineChart.invalidate();
+    }
+
 }
