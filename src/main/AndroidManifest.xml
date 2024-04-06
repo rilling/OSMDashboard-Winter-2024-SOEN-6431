@@ -157,7 +157,7 @@
         </intent-filter>
     </activity>
 
-    <activity android:name=".option4"
+    <activity android:name=".Option4"
         android:exported="true">
         <!-- Intent filter for OptionsActivity -->
         <intent-filter>
