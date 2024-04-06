@@ -60,6 +60,7 @@ import org.oscim.layers.tile.vector.VectorTileLayer;
 import org.oscim.layers.tile.vector.labeling.LabelLayer;
 import org.oscim.map.Map;
 
+import de.storchp.opentracks.osmplugin.dashboardapi.TrackPointsBySegments;
 import de.storchp.opentracks.osmplugin.maps.TrailSelectionMapView;
 
 import org.oscim.renderer.BitmapRenderer;
@@ -154,8 +155,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private int strokeWidth;
     private int protocolVersion = 1;
     private TrackPointsDebug trackPointsDebug;
-
     private List<Track> storedTracksData = new ArrayList<>();
+    private TrackPointsBySegments storedTrackPointsBySegments;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -225,18 +226,31 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
                 // Optionally, animate the map view to center on the segment
                 map.animator().animateTo(closestSegment.start);
-
+                TrackPoint selectedSegmentInTrack = findSegmentClosestToSelectedSegment(closestSegment);
                 String intentAction = getIntent().getAction();
                 if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
-                    displaySelectedTrailTable();
+                    displaySelectedTrailTable(selectedSegmentInTrack);
                 }
             }
         });
 
     }
 
-    private void displaySelectedTrailTable() {
-        TableLayout tableLayout = createTableLayout();
+    private TrackPoint findSegmentClosestToSelectedSegment(Segment closestSegment) {
+        TrackPoint selectedSegmentInTrack = null;
+        List<TrackPoint> storedSegments = storedTrackPointsBySegments.segments().get(0);
+        for(TrackPoint trackPoint: storedSegments){
+            GeoPoint trackPointGeoPoint = trackPoint.getLatLong();
+            if(trackPointGeoPoint.getLatitude() == closestSegment.start.getLatitude() || trackPointGeoPoint.getLongitude() == closestSegment.start.getLongitude()){
+                selectedSegmentInTrack = trackPoint;
+            }
+        }
+
+        return selectedSegmentInTrack;
+    }
+
+    private void displaySelectedTrailTable(TrackPoint selectedSegmentInTrack) {
+        TableLayout tableLayout = createTableLayout(selectedSegmentInTrack);
 
         // Get the root layout of the activity
         ViewGroup rootLayout = findViewById(android.R.id.content);
@@ -262,7 +276,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         rootLayout.addView(tableLayout, layoutParams);
     }
 
-    private TableLayout createTableLayout() {
+    private TableLayout createTableLayout(TrackPoint selectedSegmentInTrack) {
         // Create a new TableLayout
         TableLayout tableLayout = new TableLayout(this);
         tableLayout.setLayoutParams(new TableLayout.LayoutParams(
@@ -271,11 +285,11 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         ));
 
         tableLayout.setBackgroundResource(R.drawable.ic_table_border); // Define a drawable resource for table borders
-        populateSelectedTrailDetails(tableLayout);
+        populateSelectedTrailDetails(selectedSegmentInTrack, tableLayout);
         return tableLayout;
     }
 
-    private void populateSelectedTrailDetails(TableLayout tableLayout) {
+    private void populateSelectedTrailDetails(TrackPoint selectedSegmentInTrack, TableLayout tableLayout) {
         List<Track> tracksData = getTracksDataForTable();
         Track trackToBePopulated = tracksData.get(0);
         drawTableLine(tableLayout);
@@ -305,11 +319,16 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         double avgSpeedMeterPerSecond = trackToBePopulated.avgSpeedMeterPerSecond();
         String formattedAvgSpeed = String.format("%.2f", avgSpeedMeterPerSecond);
 
+        double segmentSpeed = selectedSegmentInTrack.getSpeed();
+        String formattedSegmentSpeed = String.format("%.2f", segmentSpeed);
+
         createTableRow("Trail Name", trackToBePopulated.trackname(), tableLayout);
         createTableRow("Trail Distance", formattedTotalDistance + " km", tableLayout);
         createTableRow("Trail Elevation", trackToBePopulated.maxElevationMeter() + " m", tableLayout);
-        createTableRow("Average Speed", formattedAvgSpeed + " m/s", tableLayout);
+        createTableRow("Average Trail Speed", formattedAvgSpeed + " m/s", tableLayout);
         createTableRow("Time Taken", totalHours + " hrs", tableLayout);
+        createTableRow("Segment Number", String.valueOf(selectedSegmentInTrack.getTrackPointId()), tableLayout);
+        createTableRow("Segment Speed", formattedSegmentSpeed + " m/s", tableLayout);
         //createTableRow("Slope", "slope %", tableLayout);
     }
 
@@ -818,6 +837,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             Log.i(TAG, "in sync " + data);
             try {
                 var trackpointsBySegments = TrackPoint.readTrackPointsBySegments(getContentResolver(), data, lastTrackPointId, protocolVersion);
+                this.storedTrackPointsBySegments = trackpointsBySegments;
                 if (trackpointsBySegments.isEmpty()) {
                     Log.d(TAG, "No new trackpoints received");
                     return;
