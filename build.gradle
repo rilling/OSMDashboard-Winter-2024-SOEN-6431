@@ -3,9 +3,11 @@ buildscript {
         google()
         mavenCentral()
         gradlePluginPortal()
+
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1'
+        classpath 'com.android.tools.build:gradle:8.2.2'
     }
 }
 
@@ -29,6 +31,19 @@ def getVersionCode = { ->
 }
 
 android {
+
+    repositories {
+        google()
+        mavenCentral()
+        // JitPack repository for MPAndroidChart
+        maven { url 'https://jitpack.io' }
+    }
+    dependencies {
+        // Other dependencies...
+        // MPAndroidChart dependency from GitHub
+        implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+    }
+
     defaultConfig {
         compileSdk 34
         minSdkVersion 26
@@ -130,6 +145,8 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.google.android.material:material:1.11.0'
+
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'      // MPAndroidChart dependency from GitHub
 
     // VTM
     implementation "org.mapsforge:vtm:$mapsforgeVersion"

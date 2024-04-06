@@ -130,7 +130,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".option1"
+        <activity android:name=".Option1"
         android:exported="true">
         <!-- Intent filter for OptionsActivity -->
         <intent-filter>
@@ -139,7 +139,7 @@
         </intent-filter>
     </activity>
 
-    <activity android:name=".option2"
+    <activity android:name=".Option2"
         android:exported="true">
         <!-- Intent filter for OptionsActivity -->
         <intent-filter>
@@ -148,7 +148,7 @@
         </intent-filter>
     </activity>
 
-    <activity android:name=".option3"
+    <activity android:name=".Option3"
         android:exported="true">
         <!-- Intent filter for OptionsActivity -->
         <intent-filter>
