@@ -714,8 +714,10 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private PathLayer addNewPolyline(int trackColor) {
         //Adjusting the width
         float strokeWidth = 10f; 
+        float borderWidth = 13f;
+        
         polyline = new PathLayer(map, trackColor, strokeWidth);
-        polyline.setBorderColor(Color.BLACK);
+        
         
         polylinesLayer.layers.add(polyline);
         return this.polyline;
