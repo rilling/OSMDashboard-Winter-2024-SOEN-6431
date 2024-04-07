@@ -100,7 +100,7 @@ public class DownloadActivity extends BaseActivity {
             Log.i(TAG, "downloadUri=" + downloadUri + ", downloadType=" + downloadType);
 
             binding.downloadInfo.setText(downloadUri.toString());
-            binding.startDownloadButton.setOnClickListener((view) -> startDownload());
+            binding.startDownloadButton.setOnClickListener(view -> startDownload());
         } else {
             binding.downloadInfo.setText(R.string.no_download_uri_found);
             binding.startDownloadButton.setEnabled(false);
@@ -251,7 +251,8 @@ public class DownloadActivity extends BaseActivity {
                     if (input != null) {
                         input.close();
                     }
-                } catch (IOException ignored) {
+                } catch (IOException e) {
+                    Log.e(TAG, "IO Exception occurred", e);
                 }
 
                 if (connection != null) {
@@ -369,7 +370,7 @@ public class DownloadActivity extends BaseActivity {
             this.extractMapFromZIP = extractMapFromZIP;
         }
 
-        abstract public Uri getDirectoryUri();
+        public abstract Uri getDirectoryUri();
 
         public int getOverwriteMessageId() {
             return overwriteMessageId;

@@ -25,7 +25,7 @@ public class TrackPoint {
     public static final String SPEED = "speed";
     public static final double PAUSE_LATITUDE = 100.0;
 
-    public static final String[] PROJECTION_V1 = {
+    protected static final String[] PROJECTION_V1 = {
             _ID,
             TRACKID,
             LATITUDE,
@@ -34,7 +34,7 @@ public class TrackPoint {
             SPEED
     };
 
-    public static final String[] PROJECTION_V2 = {
+    protected static final String[] PROJECTION_V2 = {
             _ID,
             TRACKID,
             LATITUDE,
@@ -114,20 +114,20 @@ public class TrackPoint {
                 if (lastTrackPoint.isPause()) {
                     debug.setTrackpointsPause(debug.getTrackpointsPause() + 1);
                     if (!lastTrackPoint.hasValidLocation()) {
-                       if (segment.size() > 0) {
-                           var previousTrackpoint = segment.get(segment.size() - 1);
-                           if (previousTrackpoint.hasValidLocation()) {
-                               segment.add(new TrackPoint(trackId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed));
-                           }
-                       }
+                        if (segment.size() > 0) {
+                            var previousTrackpoint = segment.get(segment.size() - 1);
+                            if (previousTrackpoint.hasValidLocation()) {
+                                segment.add(new TrackPoint(trackId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed));
+                            }
+                        }
+                        lastTrackPoint = null;
                     }
-                    lastTrackPoint = null;
                 }
             }
-        }
-        debug.setSegments(segments.size());
+            debug.setSegments(segments.size());
 
-        return new TrackPointsBySegments(segments, debug);
+            return new TrackPointsBySegments(segments, debug);
+        }
     }
 
     public long getTrackPointId() {

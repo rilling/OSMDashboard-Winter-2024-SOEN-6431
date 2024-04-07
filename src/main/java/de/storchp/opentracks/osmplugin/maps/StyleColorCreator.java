@@ -56,6 +56,11 @@ public class StyleColorCreator {
                 green = p;
                 blue = q;
             }
+            default -> {
+                red = 1.0;
+                green = 1.0;
+                blue = 1.0;
+            }
         }
 
         return Color.get((int) (red * 255), (int) (green * 255), (int) (blue * 255));
