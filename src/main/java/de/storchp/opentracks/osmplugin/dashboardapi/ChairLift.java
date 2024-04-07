@@ -3,25 +3,6 @@ package de.storchp.opentracks.osmplugin.dashboardapi;
 import java.util.ArrayList;
 import java.util.List;
 
-class Bounds {
-    public double minlat;
-    public double minlon;
-    public double maxlat;
-    public double maxlon;
-
-    // Constructor
-    public Bounds(double minlat, double minlon, double maxlat, double maxlon) {
-        this.minlat = minlat;
-        this.minlon = minlon;
-        this.maxlat = maxlat;
-        this.maxlon = maxlon;
-    }
-
-    public Bounds() {
-
-    }
-}
-
 public class ChairLift {
 
     private List<ChairLiftElements> chairLifts = new ArrayList<>();
@@ -43,32 +24,51 @@ public class ChairLift {
         return chairLifts;
     }
 
-    public void addChairLiftData(ChairLiftElements chair) {
-        chairLifts.add(chairLift);
+    public void addChairLiftData(ChairLiftElements chairLift) {
+        this.chairLifts.add(chairLift);
     }
 
     public void clearData() {
-        chairs.clear();
+        this.chairLifts.clear();
     }
 
 }
 
-class Geometry {
+class ChairLiftBounds {
+    public double minlat;
+    public double minlon;
+    public double maxlat;
+    public double maxlon;
+
+    // Constructor
+    public ChairLiftBounds(double minlat, double minlon, double maxlat, double maxlon) {
+        this.minlat = minlat;
+        this.minlon = minlon;
+        this.maxlat = maxlat;
+        this.maxlon = maxlon;
+    }
+
+    public ChairLiftBounds() {
+
+    }
+}
+
+class ChairLiftGeometry {
     public double lat;
     public double lon;
 
     // Constructor
-    public Geometry(double lat, double lon) {
+    public ChairLiftGeometry(double lat, double lon) {
         this.lat = lat;
         this.lon = lon;
     }
 
-    public Geometry() {
+    public ChairLiftGeometry() {
 
     }
 }
 
-class Tags {
+class ChairLiftTags {
     public String name;
     public String aerialway;
     public String aerialway_occupancy;
@@ -76,7 +76,7 @@ class Tags {
     public String aerialway_heating;
     public String aerialway_duration;
 
-    public Tags(String name, String aerialway, String aerialway_occupancy, String aerialway_bubble,
+    public ChairLiftTags(String name, String aerialway, String aerialway_occupancy, String aerialway_bubble,
             String aerialway_heating, String aerialway_duration) {
         this.name = name;
         this.aerialway = aerialway;
@@ -86,7 +86,7 @@ class Tags {
         this.aerialway_duration = aerialway_duration;
     }
 
-    public Tags() {
+    public ChairLiftTags() {
 
     }
 }
