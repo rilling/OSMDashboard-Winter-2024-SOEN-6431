@@ -351,7 +351,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         //getting speed for individual segment
         double speedForSegment = getSegmentSpeed(selectedSegmentInTrack);
         //converting segment speed in Km/Hr from m/s.
-        double segmentSpeedInKmPerHour = getSegmentSpeedInKmPerHour(speedForSegment);
+        double segmentSpeedInKmPerHour = getSpeedInKmPerHour(speedForSegment);
         //formatting segment speed to show in table.
         String formattedSegmentSpeedInKmPerHour = formatSpeed(segmentSpeedInKmPerHour);
 
@@ -374,7 +374,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         return trackToBePopulated.avgMovingSpeedMeterPerSecond();
     }
 
-    //converting average speed in Km/Hr from m/s.
+    //converting  speed in Km/Hr from m/s.
     private double getSpeedInKmPerHour(double speedInMeterPerSec){
         return (speedInMeterPerSec * 3.6);
     }
@@ -389,10 +389,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         return selectedSegmentOfTrack.getSpeed();
     }
 
-    //converting segment speed in Km/Hr from m/s.
-    private double getSegmentSpeedInKmPerHour(double speedInMeterPerSec){
-        return (speedInMeterPerSec * 3.6);
-    }
+
+
 
     private double getSlopePercentage(double distance, float elevation) {
         // Slope percentage is (elevation change / horizontal distance) * 100
