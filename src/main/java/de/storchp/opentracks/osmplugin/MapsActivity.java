@@ -724,6 +724,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
                         JSONArray geometry = element.getJSONArray("geometry"); // coordinates
                         String name = tags.optString("name", "Unnamed");
+
+                        // integrate chair_lift tags into tracks
+                        ChairLift chairLift = ChairLift.getInstance(); // singleton class
+                        ChairLiftElements chairLiftElements = ChairLiftElements.parseJsonElement(element);
+                        chairLift.addTrailData(chairLiftElements); // adds chairLift element list in the chairLifts
+
                         // Now you can use these variables as needed
                         Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
                     }
