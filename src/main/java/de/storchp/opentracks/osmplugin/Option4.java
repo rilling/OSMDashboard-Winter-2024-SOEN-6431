@@ -126,6 +126,5 @@ public class Option4 extends MapsActivity {
         lineChart.setTouchEnabled(true);
         lineChart.setPinchZoom(true);
         lineChart.invalidate();
-    }
-
+    }
 }
