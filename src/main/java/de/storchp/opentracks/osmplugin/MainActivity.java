@@ -32,11 +32,6 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    protected void onNewIntent(final Intent intent) {
-        super.onNewIntent(intent);
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         super.onCreateOptionsMenu(menu, false);
         return true;

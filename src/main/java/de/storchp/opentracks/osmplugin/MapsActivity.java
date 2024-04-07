@@ -581,7 +581,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         super.onCreateOptionsMenu(menu, true);
-        // TODO: menu.findItem(R.id.share).setVisible(true);
+        menu.findItem(R.id.share).setVisible(true);
         return true;
     }
 
@@ -606,7 +606,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 if (fragment != null) {
                     themeFileUri = themeFileUri.buildUpon().fragment(null).build();
                 } else {
-                    throw new RuntimeException("Fragment missing, which indicates the theme inside the zip file");
+                    throw new IllegalArgumentException("Fragment missing, which indicates the theme inside the zip file");
                 }
                 return new ZipRenderTheme(fragment, new ZipXmlThemeResourceProvider(new ZipInputStream(new BufferedInputStream(getContentResolver().openInputStream(themeFileUri)))));
             }
@@ -764,7 +764,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         // draw
         var canvas = new Canvas();
         var toBeCropped = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-        //canvas.setBitmap(toBeCropped);
 
         captureBitmap(canvas::setBitmap);
         view.draw(canvas);
@@ -822,7 +821,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         try {
             gl.glReadPixels(x, y, w, h, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, intBuffer);
-            int offset1, offset2;
+            int offset1;
+            int offset2;
             for (int i = 0; i < h; i++) {
                 offset1 = i * w;
                 offset2 = (h - i - 1) * w;
@@ -1040,7 +1040,10 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     }
 
     private PathLayer addNewPolyline(int trackColor) {
+        // Define stroke width for the path
+        float strokeWidth = 10f;
         polyline = new PathLayer(map, trackColor, strokeWidth);
+        
         polylinesLayer.layers.add(polyline);
         return this.polyline;
     }
