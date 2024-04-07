@@ -4,6 +4,7 @@ package de.storchp.opentracks.osmplugin;
 import static android.util.TypedValue.COMPLEX_UNIT_PT;
 import static java.util.Comparator.comparingInt;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -129,7 +130,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private boolean isOpenTracksRecordingThisTrack;
     private ActivityMapsBinding binding;
     private Map map;
-    private List<TrackPoint> trackPoints = new ArrayList<>();
+    private final List<TrackPoint> trackPoints = new ArrayList<>();
 
     private MapPreferences mapPreferences;
     private IRenderTheme renderTheme;
@@ -157,6 +158,36 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private TrackPointsDebug trackPointsDebug;
     private List<Track> storedTracksData = new ArrayList<>();
     private TrackPointsBySegments storedTrackPointsBySegments;
+
+
+    private void drawTrack(List<Segment> segments) {
+        if (polylinesLayer != null) {
+            map.layers().remove(polylinesLayer);
+        }
+
+        int segmentColor = trackColor;
+        int currentStrokeWidth = Math.max(strokeWidth, 4);
+        polyline = new PathLayer(map, segmentColor, currentStrokeWidth);
+
+        for (Segment segment : segments) {
+            polyline.addPoint(segment.start);
+            polyline.addPoint(segment.end);
+        }
+
+        map.layers().add(polyline);
+    }
+
+    private void drawSelectedSegment(Segment segment) {
+        if (polylinesLayer != null) {
+            map.layers().remove(polylinesLayer);
+        }
+
+        int currentStrokeWidth = Math.max(strokeWidth, 4);
+        polyline = new PathLayer(map, colorCreator.nextColor(), currentStrokeWidth);
+        polyline.addPoint(segment.start);
+        polyline.addPoint(segment.end);
+        map.layers().add(polyline);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -193,77 +224,35 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         }
 
         ((TrailSelectionMapView) binding.map.mapView).setOnMapTouchListener(geoPoint -> {
-            // Assuming you have a method getSegments() that returns a List of segment objects
-            // Each segment object should have a start and end GeoPoint
-            List<Segment> segments = getSegments(); // You need to implement this method based on your data structure
+            List<Segment> segments = getSegments();
             resetMapData();
             Segment closestSegment = null;
             Segment nextSegment = null;
-            int segmentNumber = 0;
             double minDistance = Double.MAX_VALUE;
             for (int i = 0; i < segments.size(); i++) {
                 double distance = SegmentFinder.distanceToSegment(segments.get(i).start, segments.get(i).end, geoPoint);
                 if (distance < minDistance) {
                     minDistance = distance;
                     closestSegment = segments.get(i);
-                    segmentNumber = i;
-                    if((i+1)<segments.size()){
-                        nextSegment = segments.get(i+1);
+                    if ((i + 1) < segments.size()) {
+                        nextSegment = segments.get(i + 1);
                     }
-
                 }
             }
 
             if (closestSegment != null) {
-                Log.d("MapsActivity", "Closest segment start: " + closestSegment.start.getLatitude() + "," + closestSegment.start.getLongitude() +
-                        " end: " + closestSegment.end.getLatitude() + "," + closestSegment.end.getLongitude());
-                resetMapData();
-                if (polylinesLayer != null) {
-                    map.layers().remove(polylinesLayer);
-                }
+                Log.d("MapsActivity", "Closest segment start: " + closestSegment.start.getLatitude() + "," + closestSegment.start.getLongitude() + " end: " + closestSegment.end.getLatitude() + "," + closestSegment.end.getLongitude());
+
                 TrackPoint selectedSegmentInTrack = findSegmentClosestToSelectedSegment(closestSegment);
                 TrackPoint nextSelectedSegment = findSegmentClosestToSelectedSegment(nextSegment);
-                var trackColorMode = PreferencesUtils.getTrackColorMode();
-                int segmentColor = trackColor;
-                int currentStrokeWidth = Math.max(strokeWidth, 4);
-                if(trackColorMode == TrackColorMode.BY_SPEED && this.storedTrackPointsBySegments != null){
-                    double average = this.storedTrackPointsBySegments.calcAverageSpeed();
-                    double maxSpeed = this.storedTrackPointsBySegments.calcMaxSpeed();
-                    double averageToMaxSpeed = maxSpeed - average;
-                    segmentColor = MapUtils.getTrackColorBySpeed(average, averageToMaxSpeed, selectedSegmentInTrack);
 
-                }
-
-                polyline = new PathLayer(map, segmentColor, currentStrokeWidth);
-
-                polyline.addPoint(closestSegment.start);
-                polyline.addPoint(closestSegment.end);
-                map.layers().add(polyline);
-                map.animator().animateTo(closestSegment.start);
-                MarkerSymbol startMarkerSymbol = MapUtils.createMarkerSymbol(
-                        this,
-                        R.drawable.ic_marker_red_pushpin_modern,
-                        false,
-                        MarkerSymbol.HotspotPlace.BOTTOM_CENTER
-                );
-                MarkerSymbol endMarkerSymbol = MapUtils.createMarkerSymbol(
-                        this,
-                        R.drawable.ic_marker_green_pushpin_modern,
-                        false,
-                        MarkerSymbol.HotspotPlace.BOTTOM_CENTER
-                );
-
-                MarkerItem startMarker = new MarkerItem("Start", "Start", closestSegment.start);
-                startMarker.setMarker(startMarkerSymbol);
-                MarkerItem endMarker = new MarkerItem("End", "End", closestSegment.end);
-                endMarker.setMarker(endMarkerSymbol);
-                waypointsLayer.addItem(startMarker);
-                waypointsLayer.addItem(endMarker);
+                drawTrack(segments);
+                drawSelectedSegment(closestSegment);
 
                 String intentAction = getIntent().getAction();
                 if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
-                    displaySelectedTrailTable(selectedSegmentInTrack,nextSelectedSegment);
-                }
+                        displaySelectedTrailTable(selectedSegmentInTrack,nextSelectedSegment);
+                                    }
             }
         });
 
@@ -380,7 +369,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         // Format to xx.xx%
         return Math.round(slopePercentage * 100.0) / 100.0;
     }
-    /** @author sadiq
+/** @author sadiq
      *  Method to validate track information data
      */
 
@@ -514,7 +503,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         if (APIConstants.ACTION_DASHBOARD.equals(intent.getAction())) {
             ArrayList<Uri> uris = intent.getParcelableArrayListExtra(APIConstants.ACTION_DASHBOARD_PAYLOAD);
             protocolVersion = intent.getIntExtra(EXTRAS_PROTOCOL_VERSION, 1);
-            tracksUri = APIConstants.getTracksUri(uris);
+                        tracksUri = APIConstants.getTracksUri(uris);
             trackPointsUri = APIConstants.getTrackPointsUri(uris);
             waypointsUri = APIConstants.getWaypointsUri(uris);
             keepScreenOn(intent.getBooleanExtra(EXTRAS_SHOULD_KEEP_SCREEN_ON, false));
@@ -532,7 +521,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 map.getMapPosition().setPosition(waypoint.getLatLong());
                 map.getMapPosition().setZoomLevel(map.viewport().getMaxZoomLevel());
             });
-        }
+}
     }
 
     private class OpenTracksContentObserver extends ContentObserver {
@@ -734,9 +723,9 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 .setTitle(R.string.app_name)
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, (dialog1, which) -> {
-                    PreferencesUtils.setOnlineMapConsent(true);
-                    MapsActivity.this.recreate();
-                })
+            PreferencesUtils.setOnlineMapConsent(true);
+            MapsActivity.this.recreate();
+        })
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
         dialog.show();
@@ -1059,7 +1048,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         // Define stroke width for the path
         float strokeWidth = 10f;
         polyline = new PathLayer(map, trackColor, strokeWidth);
-        
+
         polylinesLayer.layers.add(polyline);
         return this.polyline;
     }
