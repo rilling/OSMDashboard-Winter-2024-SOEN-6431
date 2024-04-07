@@ -375,6 +375,11 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         //formatting segment speed to show in table.
         String formattedSegmentSpeedInKmPerHour = formatSpeed(segmentSpeedInKmPerHour);
 
+        double timeInSecondsForSegment = differenceInMilliseconds / 1000.0; // Use the actual time difference for the segment
+
+// Calculate the distance for the segment using the segment speed (in meters)
+        double distanceForSegment = Math.abs(speedForSegment * timeInSecondsForSegment);
+
 
 
 
@@ -385,7 +390,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         createTableRow("Time Taken", formattedDifference, tableLayout);
         createTableRow("Segment Number", String.valueOf(selectedSegmentInTrack.getTrackPointId()), tableLayout);
         createTableRow("Segment Speed", formattedSegmentSpeedInKmPerHour + " km/h", tableLayout);
-        createTableRow("Slope", String.valueOf(getSlopePercentage(totalDistanceKm,trackToBePopulated.maxElevationMeter())), tableLayout);
+        createTableRow("Slope", String.valueOf(getSlopePercentage(distanceForSegment,trackToBePopulated.maxElevationMeter()))+ "%", tableLayout);
     }
 
 
@@ -413,9 +418,11 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
 
     private double getSlopePercentage(double distance, float elevation) {
-        // Slope percentage is (elevation change / horizontal distance) * 100
-        double slopePercentage = (elevation / distance) * 100;
 
+        double slopePercentage = (elevation / distance) *100 ;
+        if (slopePercentage > 100) {
+            slopePercentage = slopePercentage % 100;
+        }
         // Format to xx.xx%
         return Math.round(slopePercentage * 100.0) / 100.0;
     }
