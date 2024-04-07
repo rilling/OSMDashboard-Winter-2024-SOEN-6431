@@ -4,25 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-class Bounds {
-    public double minlat;
-    public double minlon;
-    public double maxlat;
-    public double maxlon;
-
-    // Constructor
-    public Bounds(double minlat, double minlon, double maxlat, double maxlon) {
-        this.minlat = minlat;
-        this.minlon = minlon;
-        this.maxlat = maxlat;
-        this.maxlon = maxlon;
-    }
-
-    public Bounds(){
-
-    }
-}
-
 public class Trail {
 
     private List<SkiElements> trails = new ArrayList<>();
@@ -53,22 +34,6 @@ public class Trail {
         trails.clear();
     }
 
-}
-
-class Geometry {
-    public double lat;
-    public double lon;
-
-
-    // Constructor
-    public Geometry(double lat, double lon) {
-        this.lat = lat;
-        this.lon = lon;
-    }
-
-    public Geometry(){
-
-    }
 }
 
 class Tags {
