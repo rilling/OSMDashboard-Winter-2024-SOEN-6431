@@ -167,7 +167,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        strokeWidth = PreferencesUtils.getStrokeWidth();
+        strokeWidth = 8;
+        //strokeWidth = PreferencesUtils.getStrokeWidth();
         mapMode = PreferencesUtils.getMapMode();
 
         map = binding.map.mapView.map();
