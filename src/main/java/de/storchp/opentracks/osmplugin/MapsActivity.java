@@ -621,13 +621,13 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
             Log.d(TAG, "Last trackpointId=" + lastTrackPointId);
 
-            if (endPoint != null) {
-                setEndMarker(endPoint);
+            if (endPos != null) {
+                setEndMarker(endPos);
             }
 
             GeoPoint myPos = null;
-            if (update && endPoint != null) {
-                myPos = endPoint;
+            if (update && endPos != null) {
+                myPos = endPos;
                 map.render();
             } else if (!latLongs.isEmpty()) {
                 boundingBox = new BoundingBox(latLongs).extendMargin(1.2f);
@@ -637,19 +637,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             if (myPos != null) {
                 updateMapPositionAndRotation(myPos);
             }
-            // Calculate estimated waiting time
-            if (startPoint != null && endPoint != null) {
-                double distance = MapUtils.distance(startPoint, endPoint);
-                double averageSpeed = trackpointsBySegments.calcAverageSpeed();
-                double estimatedTimeSeconds = distance / averageSpeed;
-
-                // Convert estimated time to appropriate units
-                long estimatedTimeMinutes = (long) (estimatedTimeSeconds / 60);
-                long remainingSeconds = (long) (estimatedTimeSeconds % 60);
-
-                Log.d(TAG, "Estimated waiting time: " + estimatedTimeMinutes + " minutes and " + remainingSeconds + " seconds");
-            }
-
             updateDebugTrackPoints();
         }
     }
