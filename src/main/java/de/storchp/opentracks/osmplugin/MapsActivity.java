@@ -77,6 +77,7 @@ import java.io.FileOutputStream;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -532,6 +533,42 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         return Bitmap.createBitmap(bitmapSource, w, h, Bitmap.Config.ARGB_8888);
     }
+
+    private void drawLine(GeoPoint startPoint, GeoPoint endPoint, int color, int width) {
+        PathLayer line = new PathLayer(map, color, width);
+        line.addPoint(startPoint);
+        line.addPoint(endPoint);
+        map.layers().add(line);
+        map.updateMap(true);
+    }
+
+    private void drawSegmentedLine(List<GeoPoint> points, List<Integer> colors, int width) {
+        if (points == null || points.size() < 2) {
+            Log.e(TAG, "drawSegmentedLine: Invalid points list");
+            return;
+        }
+        if (colors == null || colors.size() != points.size() - 1) {
+            Log.e(TAG, "drawSegmentedLine: Number of colors does not match the number of segments");
+            return;
+        }
+
+        // Iterate through the points list to draw each segment with the corresponding color
+        for (int i = 0; i < points.size() - 1; i++) {
+            GeoPoint startPoint = points.get(i);
+            GeoPoint endPoint = points.get(i + 1);
+
+            if (startPoint==null || endPoint==null) {
+                Log.e(TAG, "drawSegmentedLine: Invalid points list have either null start-point or end-point");
+                continue;
+            }
+
+            int color = colors.get(i);
+
+            // Draw each segment individually
+            drawLine(startPoint, endPoint, color, width);
+        }
+    }
+
 
     private void readTrackpoints(Uri data, boolean update, int protocolVersion) {
         Log.i(TAG, "Loading trackpoints from " + data);
