@@ -715,7 +715,11 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         //Adjusting the width
         float strokeWidth = 10f; 
         float borderWidth = 13f;
+
+        //Creating a border polyline
         
+        PathLayer borderpolyline =new PathLayer(map,Color.BLACK,borderWidth);
+
         polyline = new PathLayer(map, trackColor, strokeWidth);
         
         
