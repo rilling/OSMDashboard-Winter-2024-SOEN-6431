@@ -113,7 +113,7 @@ public class TrackPoint {
                     segments.add(segment);
                 }
 
-                lastTrackPoint = new TrackPoint(trackId, trackPointId, latitude, longitude, type, speed,time);
+                lastTrackPoint = new TrackPoint(trackId, trackPointId, latitude, longitude, type, speed, time);
                 if (lastTrackPoint.hasValidLocation()) {
                     segment.add(lastTrackPoint);
                 } else if (!lastTrackPoint.isPause()) {
@@ -125,7 +125,7 @@ public class TrackPoint {
                         if (segment.size() > 0) {
                             var previousTrackpoint = segment.get(segment.size() - 1);
                             if (previousTrackpoint.hasValidLocation()) {
-                                segment.add(new TrackPoint(trackId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed));
+                                segment.add(new TrackPoint(trackId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed, time));
                             }
                         }
                         lastTrackPoint = null;
