@@ -11,6 +11,7 @@ import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.net.Uri;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
@@ -718,7 +719,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         //Creating a border polyline
         
-        PathLayer borderpolyline =new PathLayer(map,Color.BLACK,borderWidth);
+        PathLayer borderpolyline =new PathLayer(map, Color.BLACK,borderWidth);
         polylinesLayer.layers.add(borderpolyline);
 
         polyline = new PathLayer(map, trackColor, strokeWidth);
