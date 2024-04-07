@@ -620,13 +620,13 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
             Log.d(TAG, "Last trackpointId=" + lastTrackPointId);
 
-            if (endPos != null) {
-                setEndMarker(endPos);
+            if (endPoint != null) {
+                setEndMarker(endPoint);
             }
 
             GeoPoint myPos = null;
-            if (update && endPos != null) {
-                myPos = endPos;
+            if (update && endPoint != null) {
+                myPos = endPoint;
                 map.render();
             } else if (!latLongs.isEmpty()) {
                 boundingBox = new BoundingBox(latLongs).extendMargin(1.2f);
