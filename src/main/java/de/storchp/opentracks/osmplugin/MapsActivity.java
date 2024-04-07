@@ -356,33 +356,32 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             return false;
         }
 
-        // Get the first track from the list for validation
-        Track trackToBeValidated = tracksData.get(0);
+        for(Track trackToBeValidated : tracksData) {
+            // Check if the track name is not empty
+            if (TextUtils.isEmpty(trackToBeValidated.trackname())) {
+                System.out.println("Track name is NULL!");
+                return false;
+            }
 
-        // Check if the track name is not empty
-        if (TextUtils.isEmpty(trackToBeValidated.trackname())) {
-            System.out.println("Track name is NULL!");
-            return false;
+            // Check if total distance and max elevation are positive values
+            if (trackToBeValidated.totalDistanceMeter() <= 0 && trackToBeValidated.maxElevationMeter() <= 0) {
+                System.out.println("Distance and Elevation are invalid!");
+                return false;
+            }
+
+            // Check if average speed is a valid positive value
+            if (trackToBeValidated.avgSpeedMeterPerSecond() < 0) {
+                System.out.println("Average speed is invalid!");
+                return false;
+            }
+
+            // Check if total time is a valid positive value
+            if (trackToBeValidated.totalTimeMillis() <= 0) {
+                System.out.println("Total time value is invalid!");
+                return false;
+            }
+
         }
-
-        // Check if total distance and max elevation are positive values
-        if (trackToBeValidated.totalDistanceMeter() <= 0 && trackToBeValidated.maxElevationMeter() <= 0) {
-            System.out.println("Distance and Elevation are invalid!");
-            return false;
-        }
-
-        // Check if average speed is a valid positive value
-        if (trackToBeValidated.avgSpeedMeterPerSecond() < 0) {
-            System.out.println("Average speed is invalid!");
-            return false;
-        }
-
-        // Check if total time is a valid positive value
-        if (trackToBeValidated.totalTimeMillis() <= 0) {
-            System.out.println("Total time value is invalid!");
-            return false;
-        }
-
         return true; // Data passes all validation checks
     }
 
