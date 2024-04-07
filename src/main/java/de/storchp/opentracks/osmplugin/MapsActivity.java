@@ -1016,7 +1016,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             if (myPos != null) {
                 updateMapPositionAndRotation(myPos);
             }
-            updateDebugTrackPoints();
+//            updateDebugTrackPoints();
         }
     }
 
@@ -1061,21 +1061,21 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         lastWaypointId = 0;
     }
 
-    public void updateDebugTrackPoints() {
-        if (PreferencesUtils.isDebugTrackPoints()) {
-            binding.map.trackpointsDebugInfo.setText(
-                    getString(R.string.debug_trackpoints_info,
-                            trackPointsDebug.getTrackpointsReceived(),
-                            trackPointsDebug.getTrackpointsInvalid(),
-                            trackPointsDebug.getTrackpointsDrawn(),
-                            trackPointsDebug.getTrackpointsPause(),
-                            trackPointsDebug.getSegments(),
-                            protocolVersion
-                    ));
-        } else {
-            binding.map.trackpointsDebugInfo.setText("");
-        }
-    }
+//    public void updateDebugTrackPoints() {
+//        if (PreferencesUtils.isDebugTrackPoints()) {
+//            binding.map.trackpointsDebugInfo.setText(
+//                    getString(R.string.debug_trackpoints_info,
+//                            trackPointsDebug.getTrackpointsReceived(),
+//                            trackPointsDebug.getTrackpointsInvalid(),
+//                            trackPointsDebug.getTrackpointsDrawn(),
+//                            trackPointsDebug.getTrackpointsPause(),
+//                            trackPointsDebug.getSegments(),
+//                            protocolVersion
+//                    ));
+//        } else {
+//            binding.map.trackpointsDebugInfo.setText("");
+//        }
+//    }
 
     private void setEndMarker(GeoPoint endPos) {
         synchronized (map.layers()) {
