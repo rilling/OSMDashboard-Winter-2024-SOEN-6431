@@ -198,13 +198,19 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             List<Segment> segments = getSegments(); // You need to implement this method based on your data structure
             resetMapData();
             Segment closestSegment = null;
+            Segment nextSegment = null;
+            int segmentNumber = 0;
             double minDistance = Double.MAX_VALUE;
-
             for (int i = 0; i < segments.size(); i++) {
                 double distance = SegmentFinder.distanceToSegment(segments.get(i).start, segments.get(i).end, geoPoint);
                 if (distance < minDistance) {
                     minDistance = distance;
                     closestSegment = segments.get(i);
+                    segmentNumber = i;
+                    if((i+1)<segments.size()){
+                        nextSegment = segments.get(i+1);
+                    }
+
                 }
             }
 
@@ -216,6 +222,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                     map.layers().remove(polylinesLayer);
                 }
                 TrackPoint selectedSegmentInTrack = findSegmentClosestToSelectedSegment(closestSegment);
+                TrackPoint nextSelectedSegment = findSegmentClosestToSelectedSegment(nextSegment);
                 var trackColorMode = PreferencesUtils.getTrackColorMode();
                 int segmentColor = trackColor;
                 int currentStrokeWidth = Math.max(strokeWidth, 4);
@@ -239,13 +246,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 map.animator().animateTo(closestSegment.start);
                 String intentAction = getIntent().getAction();
                 if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
-                    displaySelectedTrailTable(selectedSegmentInTrack);
+                    displaySelectedTrailTable(selectedSegmentInTrack,nextSelectedSegment);
                 }
             }
         });
 
     }
-
     private TrackPoint findSegmentClosestToSelectedSegment(Segment closestSegment) {
         TrackPoint selectedSegmentInTrack = null;
         List<TrackPoint> storedSegments = storedTrackPointsBySegments.segments().get(0);
@@ -259,8 +265,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         return selectedSegmentInTrack;
     }
 
-    private void displaySelectedTrailTable(TrackPoint selectedSegmentInTrack) {
-        TableLayout tableLayout = createTableLayout(selectedSegmentInTrack);
+    private void displaySelectedTrailTable(TrackPoint selectedSegmentInTrack, TrackPoint nextSelectedSegment) {
+        TableLayout tableLayout = createTableLayout(selectedSegmentInTrack,nextSelectedSegment);
 
         // Get the root layout of the activity
         ViewGroup rootLayout = findViewById(android.R.id.content);
@@ -286,7 +292,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         rootLayout.addView(tableLayout, layoutParams);
     }
 
-    private TableLayout createTableLayout(TrackPoint selectedSegmentInTrack) {
+    private TableLayout createTableLayout(TrackPoint selectedSegmentInTrack,TrackPoint nextSegment) {
         // Create a new TableLayout
         TableLayout tableLayout = new TableLayout(this);
         tableLayout.setLayoutParams(new TableLayout.LayoutParams(
@@ -295,14 +301,24 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         ));
 
         tableLayout.setBackgroundResource(R.drawable.ic_table_border); // Define a drawable resource for table borders
-        populateSelectedTrailDetails(selectedSegmentInTrack, tableLayout);
+        populateSelectedTrailDetails(selectedSegmentInTrack, tableLayout, nextSegment);
         return tableLayout;
     }
 
-    private void populateSelectedTrailDetails(TrackPoint selectedSegmentInTrack, TableLayout tableLayout) {
+    private void populateSelectedTrailDetails(TrackPoint selectedSegmentInTrack, TableLayout tableLayout, TrackPoint nextSegment) {
         List<Track> tracksData = getTracksDataForTable();
         Track trackToBePopulated = tracksData.get(0);
         drawTableLine(tableLayout);
+        long differenceInMilliseconds = nextSegment.getTime().getTime() - selectedSegmentInTrack.getTime().getTime();
+
+// Convert the difference from milliseconds to minutes
+        long differenceInMinutes = differenceInMilliseconds / (60 * 1000);
+
+// If you want to get the difference in a specific String format like "XX min XX sec", you can do:
+        long differenceInSeconds = differenceInMilliseconds / 1000; // total seconds
+        long seconds = differenceInSeconds % 60; // remaining seconds
+        String formattedDifference = Math.abs(differenceInMinutes) + " min " + Math.abs(seconds) + " sec";
+//        Log.d("checkoutput",String.valueOf(selectedSegmentInTrack.getDistance()));
         TableRow headerRow = new TableRow(this);
         headerRow.setLayoutParams(new TableRow.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -319,14 +335,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         tableLayout.addView(headerRow);
         drawTableLine(tableLayout);
 
-        long totalTimeMillis = trackToBePopulated.totalTimeMillis();
-        long totalHours = Math.round((double) totalTimeMillis / (1000 * 60 * 60)); // Convert milliseconds to hours
 
         double totalDistanceMeter = trackToBePopulated.totalDistanceMeter();
         double totalDistanceKm = totalDistanceMeter / 1000; // Convert meters to kilometers
         String formattedTotalDistance = String.format("%.2f", totalDistanceKm);
 
-        double avgSpeedMeterPerSecond = trackToBePopulated.avgSpeedMeterPerSecond();
+        double avgSpeedMeterPerSecond = selectedSegmentInTrack.getSpeed();
         double avgSpeedKmPerHour = avgSpeedMeterPerSecond * 3.6; // Convert m/s to km/h
         String formattedAvgSpeed = String.format("%.2f", avgSpeedKmPerHour);
 
@@ -338,13 +352,18 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         createTableRow("Trail Distance", formattedTotalDistance + " km", tableLayout);
         createTableRow("Trail Elevation", trackToBePopulated.maxElevationMeter() + " m", tableLayout);
         createTableRow("Average Trail Speed", formattedAvgSpeed + " km/h", tableLayout);
-        createTableRow("Time Taken", totalHours + " hrs", tableLayout);
+        createTableRow("Time Taken", formattedDifference, tableLayout);
         createTableRow("Segment Number", String.valueOf(selectedSegmentInTrack.getTrackPointId()), tableLayout);
         createTableRow("Segment Speed", formattedSegmentSpeed + " km/h", tableLayout);
-        //createTableRow("Slope", "slope %", tableLayout);
+        createTableRow("Slope", String.valueOf(getSlopePercentage(totalDistanceKm,trackToBePopulated.maxElevationMeter())), tableLayout);
     }
+    private double getSlopePercentage(double distance, float elevation) {
+        // Slope percentage is (elevation change / horizontal distance) * 100
+        double slopePercentage = (elevation / distance) * 100;
 
-
+        // Format to xx.xx%
+        return Math.round(slopePercentage * 100.0) / 100.0;
+    }
     /** @author sadiq
      *  Method to validate track information data
      */
