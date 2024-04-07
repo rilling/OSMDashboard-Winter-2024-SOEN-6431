@@ -167,7 +167,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        strokeWidth = PreferencesUtils.getStrokeWidth();
+        strokeWidth = 8;
+        //strokeWidth = PreferencesUtils.getStrokeWidth();
         mapMode = PreferencesUtils.getMapMode();
 
         map = binding.map.mapView.map();
@@ -234,7 +235,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
                 }
 
-
                 polyline = new PathLayer(map, segmentColor, currentStrokeWidth); // Adjust color and stroke width as needed
 
                 // Add start and end points to the PathLayer
@@ -244,6 +244,26 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 map.layers().add(polyline);
                 // Optionally, animate the map view to center on the segment
                 map.animator().animateTo(closestSegment.start);
+                                MarkerSymbol startMarkerSymbol = MapUtils.createMarkerSymbol(
+                        this,
+                        R.drawable.ic_marker_red_pushpin_modern,
+                        false,
+                        MarkerSymbol.HotspotPlace.BOTTOM_CENTER
+                );
+                MarkerSymbol endMarkerSymbol = MapUtils.createMarkerSymbol(
+                        this,
+                        R.drawable.ic_marker_green_pushpin_modern,
+                        false,
+                        MarkerSymbol.HotspotPlace.BOTTOM_CENTER
+                );
+
+                MarkerItem startMarker = new MarkerItem("Start", "Start", closestSegment.start);
+                startMarker.setMarker(startMarkerSymbol);
+                MarkerItem endMarker = new MarkerItem("End", "End", closestSegment.end);
+                endMarker.setMarker(endMarkerSymbol);
+                waypointsLayer.addItem(startMarker);
+                waypointsLayer.addItem(endMarker);
+                
                 String intentAction = getIntent().getAction();
                 if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
                     displaySelectedTrailTable(selectedSegmentInTrack,nextSelectedSegment);
@@ -996,7 +1016,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             if (myPos != null) {
                 updateMapPositionAndRotation(myPos);
             }
-            updateDebugTrackPoints();
+//            updateDebugTrackPoints();
         }
     }
 
@@ -1041,21 +1061,21 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         lastWaypointId = 0;
     }
 
-    public void updateDebugTrackPoints() {
-        if (PreferencesUtils.isDebugTrackPoints()) {
-            binding.map.trackpointsDebugInfo.setText(
-                    getString(R.string.debug_trackpoints_info,
-                            trackPointsDebug.getTrackpointsReceived(),
-                            trackPointsDebug.getTrackpointsInvalid(),
-                            trackPointsDebug.getTrackpointsDrawn(),
-                            trackPointsDebug.getTrackpointsPause(),
-                            trackPointsDebug.getSegments(),
-                            protocolVersion
-                    ));
-        } else {
-            binding.map.trackpointsDebugInfo.setText("");
-        }
-    }
+//    public void updateDebugTrackPoints() {
+//        if (PreferencesUtils.isDebugTrackPoints()) {
+//            binding.map.trackpointsDebugInfo.setText(
+//                    getString(R.string.debug_trackpoints_info,
+//                            trackPointsDebug.getTrackpointsReceived(),
+//                            trackPointsDebug.getTrackpointsInvalid(),
+//                            trackPointsDebug.getTrackpointsDrawn(),
+//                            trackPointsDebug.getTrackpointsPause(),
+//                            trackPointsDebug.getSegments(),
+//                            protocolVersion
+//                    ));
+//        } else {
+//            binding.map.trackpointsDebugInfo.setText("");
+//        }
+//    }
 
     private void setEndMarker(GeoPoint endPos) {
         synchronized (map.layers()) {
@@ -1075,10 +1095,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     }
 
     private PathLayer addNewPolyline(int trackColor) {
-        // Define stroke width for the path
-        float strokeWidth = 10f;
-        polyline = new PathLayer(map, trackColor, strokeWidth);
-        
+        float currentStrokeWidth = Math.max(strokeWidth, 4);;
+        polyline = new PathLayer(map, trackColor, currentStrokeWidth);
         polylinesLayer.layers.add(polyline);
         return this.polyline;
     }
