@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 
+import org.json.JSONException;
 import org.oscim.android.MapPreferences;
 import org.oscim.backend.CanvasAdapter;
 import org.oscim.core.BoundingBox;
@@ -102,6 +103,19 @@ import de.storchp.opentracks.osmplugin.utils.TrackPointsDebug;
 import de.storchp.opentracks.osmplugin.utils.TrackStatistics;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
+
+import org.json.JSONObject;
+import org.json.JSONArray;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import de.storchp.opentracks.osmplugin.dashboardapi.SkiElements;
+import de.storchp.opentracks.osmplugin.dashboardapi.Trail;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGestureListener<MarkerInterface> {
 
@@ -695,6 +709,35 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         }
     }
 
+    /**
+     * read ski elements from json input and returns it
+     * @param jsonString
+     * @return ski element translated from json file
+     * example of usage:
+     * String jsonInput = "[{\"type\":\"ski_element\",\"id\":1,\"bounds\":{\"minlat\":10,
+     *                      \"minlon\":20,\"maxlat\":30,\"maxlon\":40},\"nodes\":[123,456],
+     *                      \"geometry\":[{\"lat\":25,\"lon\":35}],\"tags\":{\"name\":\"Ski
+     *                      Resort\",\"piste:difficulty\":\"easy\",\"piste:type\":\"downhill\",
+     *                      \"ref\":\"SR001\"}}]";
+     */
+    public SkiElements readSkiElementsFromJson(String jsonString) {
+        SkiElements skiElement = new SkiElements();
+        try {
+            JSONArray jsonArray = new JSONArray(jsonString);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                skiElement = SkiElements.parseJsonElement(jsonObject);
+                // Now you can use the parsed ski element as needed
+                System.out.println("Type: " + skiElement.type + ", ID: " + skiElement.id);
+                return skiElement;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        return skiElement;
+    }
+
     private void setEndMarker(GeoPoint endPos) {
         synchronized (map.layers()) {
             if (endMarker != null) {
@@ -714,17 +757,17 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
     private PathLayer addNewPolyline(int trackColor) {
         //Adjusting the width
-        float strokeWidth = 10f; 
+        float strokeWidth = 10f;
         float borderWidth = 13f;
 
         //Creating a border polyline
-        
+
         PathLayer borderpolyline =new PathLayer(map, Color.BLACK,borderWidth);
         polylinesLayer.layers.add(borderpolyline);
 
         polyline = new PathLayer(map, trackColor, strokeWidth);
-        
-        
+
+
         polylinesLayer.layers.add(polyline);
         return this.polyline;
     }
