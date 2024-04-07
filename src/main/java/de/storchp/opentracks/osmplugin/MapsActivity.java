@@ -726,7 +726,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         
         
         polylinesLayer.layers.add(polyline);
-        return this.polyline;
+        return polyline;
     }
 
     private void readWaypoints(Uri data) {
