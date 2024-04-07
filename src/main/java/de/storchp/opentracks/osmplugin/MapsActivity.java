@@ -234,16 +234,32 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
                 }
 
+                polyline = new PathLayer(map, segmentColor, currentStrokeWidth);
 
-                polyline = new PathLayer(map, segmentColor, currentStrokeWidth); // Adjust color and stroke width as needed
-
-                // Add start and end points to the PathLayer
                 polyline.addPoint(closestSegment.start);
                 polyline.addPoint(closestSegment.end);
-                // Add the PathLayer to the map
                 map.layers().add(polyline);
-                // Optionally, animate the map view to center on the segment
                 map.animator().animateTo(closestSegment.start);
+                MarkerSymbol startMarkerSymbol = MapUtils.createMarkerSymbol(
+                        this,
+                        R.drawable.ic_marker_red_pushpin_modern,
+                        false,
+                        MarkerSymbol.HotspotPlace.BOTTOM_CENTER
+                );
+                MarkerSymbol endMarkerSymbol = MapUtils.createMarkerSymbol(
+                        this,
+                        R.drawable.ic_marker_green_pushpin_modern,
+                        false,
+                        MarkerSymbol.HotspotPlace.BOTTOM_CENTER
+                );
+
+                MarkerItem startMarker = new MarkerItem("Start", "Start", closestSegment.start);
+                startMarker.setMarker(startMarkerSymbol);
+                MarkerItem endMarker = new MarkerItem("End", "End", closestSegment.end);
+                endMarker.setMarker(endMarkerSymbol);
+                waypointsLayer.addItem(startMarker);
+                waypointsLayer.addItem(endMarker);
+
                 String intentAction = getIntent().getAction();
                 if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
                     displaySelectedTrailTable(selectedSegmentInTrack,nextSelectedSegment);
