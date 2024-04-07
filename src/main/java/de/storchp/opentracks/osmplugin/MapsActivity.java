@@ -167,7 +167,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        strokeWidth = PreferencesUtils.getStrokeWidth();
+        strokeWidth = 9;
+        //strokeWidth = PreferencesUtils.getStrokeWidth();
         mapMode = PreferencesUtils.getMapMode();
 
         map = binding.map.mapView.map();
@@ -1096,7 +1097,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
     private PathLayer addNewPolyline(int trackColor) {
         // Define stroke width for the path
-        float strokeWidth = 10f;
+        float strokeWidth = 8f;
         polyline = new PathLayer(map, trackColor, strokeWidth);
         
         polylinesLayer.layers.add(polyline);
