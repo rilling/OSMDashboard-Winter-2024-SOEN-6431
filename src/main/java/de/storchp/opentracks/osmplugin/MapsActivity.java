@@ -637,19 +637,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             if (myPos != null) {
                 updateMapPositionAndRotation(myPos);
             }
-            // Calculate estimated waiting time
-            if (startPoint != null && endPoint != null) {
-                double distance = MapUtils.distance(startPoint, endPoint);
-                double averageSpeed = trackpointsBySegments.calcAverageSpeed();
-                double estimatedTimeSeconds = distance / averageSpeed;
-
-                // Convert estimated time to appropriate units
-                long estimatedTimeMinutes = (long) (estimatedTimeSeconds / 60);
-                long remainingSeconds = (long) (estimatedTimeSeconds % 60);
-
-                Log.d(TAG, "Estimated waiting time: " + estimatedTimeMinutes + " minutes and " + remainingSeconds + " seconds");
-            }
-
             updateDebugTrackPoints();
         }
     }
