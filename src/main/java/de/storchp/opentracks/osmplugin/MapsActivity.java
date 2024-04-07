@@ -215,18 +215,28 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 if (polylinesLayer != null) {
                     map.layers().remove(polylinesLayer);
                 }
-                polyline = new PathLayer(map, Color.RED, 4); // Adjust color and stroke width as needed
+                TrackPoint selectedSegmentInTrack = findSegmentClosestToSelectedSegment(closestSegment);
+                var trackColorMode = PreferencesUtils.getTrackColorMode();
+                int segmentColor = trackColor;
+                int currentStrokeWidth = Math.max(strokeWidth, 4);
+                if(trackColorMode == TrackColorMode.BY_SPEED && this.storedTrackPointsBySegments != null){
+                    double average = this.storedTrackPointsBySegments.calcAverageSpeed();
+                    double maxSpeed = this.storedTrackPointsBySegments.calcMaxSpeed();
+                    double averageToMaxSpeed = maxSpeed - average;
+                    segmentColor = MapUtils.getTrackColorBySpeed(average, averageToMaxSpeed, selectedSegmentInTrack);
+
+                }
+
+
+                polyline = new PathLayer(map, segmentColor, currentStrokeWidth); // Adjust color and stroke width as needed
 
                 // Add start and end points to the PathLayer
                 polyline.addPoint(closestSegment.start);
                 polyline.addPoint(closestSegment.end);
-
                 // Add the PathLayer to the map
                 map.layers().add(polyline);
-
                 // Optionally, animate the map view to center on the segment
                 map.animator().animateTo(closestSegment.start);
-                TrackPoint selectedSegmentInTrack = findSegmentClosestToSelectedSegment(closestSegment);
                 String intentAction = getIntent().getAction();
                 if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
                     displaySelectedTrailTable(selectedSegmentInTrack);
@@ -948,6 +958,9 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         // polylines
         if (polylinesLayer != null) {
             layers.remove(polylinesLayer);
+        }
+        if(polyline != null){
+            map.layers().remove(polyline);
         }
         polylinesLayer = new GroupLayer(map);
         layers.add(polylinesLayer);
