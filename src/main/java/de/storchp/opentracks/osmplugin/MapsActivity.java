@@ -537,6 +537,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     }
 
     private void drawLine(GeoPoint startPoint, GeoPoint endPoint, int color, int width) {
+
+        PathLayer borderLine = new PathLayer(map, Color.BLACK, width + 2); // Adjust border width as needed
+        borderLine.addPoint(startPoint);
+        borderLine.addPoint(endPoint);
+        map.layers().add(borderLine);
+
         PathLayer line = new PathLayer(map, color, width);
         line.addPoint(startPoint);
         line.addPoint(endPoint);
@@ -568,6 +574,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
             // Draw each segment individually
             drawLine(startPoint, endPoint, color, width);
+            drawLine(startPoint, endPoint, Color.BLACK, width + 2);
         }
     }
 
