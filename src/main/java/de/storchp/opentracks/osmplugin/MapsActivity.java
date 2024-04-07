@@ -234,7 +234,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
                 }
 
-
                 polyline = new PathLayer(map, segmentColor, currentStrokeWidth); // Adjust color and stroke width as needed
 
                 // Add start and end points to the PathLayer
@@ -1095,10 +1094,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     }
 
     private PathLayer addNewPolyline(int trackColor) {
-        // Define stroke width for the path
-        float strokeWidth = 10f;
-        polyline = new PathLayer(map, trackColor, strokeWidth);
-        
+        float currentStrokeWidth = Math.max(strokeWidth, 4);;
+        polyline = new PathLayer(map, trackColor, currentStrokeWidth);
         polylinesLayer.layers.add(polyline);
         return this.polyline;
     }
