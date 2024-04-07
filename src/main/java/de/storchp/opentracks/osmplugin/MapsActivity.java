@@ -718,7 +718,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         //Creating a border polyline
         
-        
+        PathLayer borderpolyline =new PathLayer(map,Color.BLACK,borderWidth);
 
         polyline = new PathLayer(map, trackColor, strokeWidth);
         
