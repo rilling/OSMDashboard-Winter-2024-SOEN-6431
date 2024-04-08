@@ -23,6 +23,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
+
 import de.storchp.opentracks.osmplugin.dashboardapi.TrackPoint;
 
 
@@ -65,7 +67,8 @@ public class Option4 extends MapsActivity {
         // movingAverageEntries = getMovingAverageEntries(defaultWindowSize);
         // timeAverageEntries = getTimeAverageEntries(defaultWindowSize);
         // setUpChart();
-    }
+
+
 
     private List<Entry> getTimeAverageEntries(int windowSize){
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
