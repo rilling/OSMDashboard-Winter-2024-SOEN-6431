@@ -592,6 +592,25 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             drawLine(startPoint, endPoint, Color.BLACK, width + 2);
         }
     }
+    private void drawTrackBorder(List<GeoPoint> trackPoints, int color, int width) {
+        if (trackPoints == null || trackPoints.size() < 2) {
+            Log.e(TAG, "drawTrackBorder: Invalid track points list");
+            return;
+        }
+
+        PathLayer borderLine = new PathLayer(map, color, width); // Border line color and width
+        for (int i = 0; i < trackPoints.size() - 1; i++) {
+            GeoPoint startPoint = trackPoints.get(i);
+            GeoPoint endPoint = trackPoints.get(i + 1);
+            borderLine.addPoint(startPoint);
+            borderLine.addPoint(endPoint);
+        }
+
+
+
+        map.layers().add(borderLine);
+        map.updateMap(true);
+    }
 
 
     private void readTrackpoints(Uri data, boolean update, int protocolVersion) {
@@ -693,6 +712,9 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             } else if (!latLongs.isEmpty()) {
                 boundingBox = new BoundingBox(latLongs).extendMargin(1.2f);
                 myPos = boundingBox.getCenterPoint();
+            }
+            if (!latLongs.isEmpty()) {
+                drawTrackBorder(latLongs, Color.BLACK, 3); // Adjust color and width as needed
             }
 
             if (myPos != null) {
@@ -807,7 +829,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         float strokeWidth = 10f;
         float borderWidth = 13f;
 
-        //Creating a border polyline
 
         PathLayer borderpolyline =new PathLayer(map, Color.BLACK,borderWidth);
         polylinesLayer.layers.add(borderpolyline);
