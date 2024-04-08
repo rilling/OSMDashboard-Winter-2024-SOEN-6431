@@ -44,6 +44,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 
+import org.json.JSONObject;
+import org.json.JSONArray;
 import org.oscim.android.MapPreferences;
 import org.oscim.backend.CanvasAdapter;
 import org.oscim.core.BoundingBox;
@@ -85,12 +87,15 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipInputStream;
 
@@ -99,9 +104,13 @@ import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
 import de.storchp.opentracks.osmplugin.dashboardapi.APIConstants;
+import de.storchp.opentracks.osmplugin.dashboardapi.ChairLift;
+import de.storchp.opentracks.osmplugin.dashboardapi.ChairLiftElements;
+import de.storchp.opentracks.osmplugin.dashboardapi.SkiElements;
 import de.storchp.opentracks.osmplugin.dashboardapi.SegmentFinder;
 import de.storchp.opentracks.osmplugin.dashboardapi.Track;
 import de.storchp.opentracks.osmplugin.dashboardapi.TrackPoint;
+import de.storchp.opentracks.osmplugin.dashboardapi.Trail;
 import de.storchp.opentracks.osmplugin.dashboardapi.Waypoint;
 import de.storchp.opentracks.osmplugin.databinding.ActivityMapsBinding;
 import de.storchp.opentracks.osmplugin.maps.MovementDirection;
@@ -114,7 +123,11 @@ import de.storchp.opentracks.osmplugin.utils.TrackColorMode;
 import de.storchp.opentracks.osmplugin.utils.TrackPointsDebug;
 import de.storchp.opentracks.osmplugin.utils.TrackStatistics;
 import okhttp3.Cache;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGestureListener<MarkerInterface> {
 
@@ -1025,6 +1038,100 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             }
             updateDebugTrackPoints();
         }
+
+        ExecutorService myExecutor = Executors.newCachedThreadPool();
+        myExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                // get ski features
+                OkHttpClient client = new OkHttpClient().newBuilder()
+                        .build();
+                MediaType mediaType = MediaType.parse("text/plain");
+                String bbox = boundingBox.minLatitudeE6 / 1000000.0 + ","
+                        + boundingBox.minLongitudeE6 / 1000000.0 + ","
+                        + boundingBox.maxLatitudeE6 / 1000000.0 + ","
+                        + boundingBox.maxLongitudeE6 / 1000000.0;
+
+                String skiRouteRequestBodyData = "data=[out:json][timeout:90];" + "(way[\"piste:type\"](" +
+                        bbox + ");relation[\"piste:type\"](" + bbox + ");" + ");" + "out geom;";
+
+                // making API request for ski route data
+                RequestBody body = RequestBody.create(mediaType, skiRouteRequestBodyData);
+                Request request = new Request.Builder()
+                        .url("https://overpass-api.de/api/interpreter")
+                        .method("POST", body)
+                        .addHeader("Content-Type", "text/plain")
+                        .build();
+                Response response = null;
+                try {
+                    response = client.newCall(request).execute();
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+                    Log.println(Log.DEBUG, TAG, String.valueOf(jsonResponse));
+
+                    // reading elements array from JSON response
+                    JSONArray elements = jsonResponse.getJSONArray("elements");
+                    for (int i = 0; i < elements.length(); i++) {
+                        JSONObject element = elements.getJSONObject(i);
+                        String type = element.getString("type");
+                        long id = element.getLong("id");
+                        JSONObject tags = element.getJSONObject("tags");
+                        JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
+                        JSONArray geometry = element.getJSONArray("geometry"); // coordinates
+                        String name = tags.optString("name", "Unnamed");
+                        Trail trail = Trail.getInstance(); // singleton class
+                        SkiElements skiElements = SkiElements.parseJsonElement(element); // has ski-elements in the form of list
+                        trail.addTrailData(skiElements); // adds ski-element list in the trails
+                        // Now you can use these variables as needed
+                        Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                // making API request for chair lift data
+                String chairLiftRequestBodyData = "data=[out:json][timeout:90];" +
+                        "(node[\"aerialway\"=\"chair_lift\"](" + bbox + ");" +
+                        "way[\"aerialway\"=\"chair_lift\"](" + bbox + ");" +
+                        "way[\"aerialway\"=\"chair_lift\"](" + bbox + ");" +
+                        ");out geom;";
+                body = RequestBody.create(mediaType, chairLiftRequestBodyData);
+                request = new Request.Builder()
+                        .url("https://overpass-api.de/api/interpreter")
+                        .method("POST", body)
+                        .addHeader("Content-Type", "text/plain")
+                        .build();
+                try {
+                    response = client.newCall(request).execute();
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+
+                    // extracting data
+                    JSONArray elements = jsonResponse.getJSONArray("elements");
+
+                    // integrate chair_lift tags into tracks
+                    ChairLift chairLift = ChairLift.getInstance(); // singleton class
+                    chairLift.clearData();
+                    for (int i = 0; i < elements.length(); i++) {
+                        JSONObject element = elements.getJSONObject(i);
+                        String type = element.getString("type");
+                        long id = element.getLong("id");
+                        JSONObject tags = element.getJSONObject("tags");
+                        JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
+                        JSONArray geometry = element.getJSONArray("geometry"); // coordinates
+                        String name = tags.optString("name", "Unnamed");
+
+                        ChairLiftElements chairLiftElements = ChairLiftElements.parseJsonElement(element);
+                        chairLift.addChairLiftData(chairLiftElements); // adds chairLift element list in the chairLifts
+
+                        // Now you can use these variables as needed
+                        Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void resetMapData() {
