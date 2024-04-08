@@ -94,5 +94,18 @@
     <string name="settings_night_mode_option_night">Night</string>
     <string name="settings_ui_dynamic_colors_title">Dynamic Colors</string>
     <string name="settings_ui_dynamic_colors_summary">Use user-defined Dynamic Colors (Android 12+ only; requires a manual restart)</string>
+    <string name="distance_vs_time_distribution" />
+    <string name="duration_vs_time_distribution" />
+    <string name="runs_vs_time_distribution">runs_vs_time_distribution</string>
+    <string name="Duration_vs_Time_distribution">duration_vs_time_distribution</string>
+    <string name="Distance_vs_Time_distribution">distance_vs_time_distribution</string>
+    <string name="filter">filter</string>
+    <string name="bar_graph_1">bar graph 1</string>
+    <string name="bar_graph_2">bar graph 2</string>
+    <string name="bar_graph_3">bar graph 3</string>
+    <string name="line_chart">line chart</string>
+    <string name="distancegraph">distancegraph</string>
+    <string name="durationgraph">durationgraph</string>
+    <string name="runsgraph">runsgraph</string>
 
 </resources>
