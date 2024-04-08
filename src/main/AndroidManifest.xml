@@ -166,6 +166,34 @@
         </intent-filter>
     </activity>
 
+    <activity android:name=".DistanceGraph"
+        android:exported="true">
+        <!-- Intent filter for OptionsActivity -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+    </activity>
+
+    <activity android:name=".DurationGraph"
+        android:exported="true">
+        <!-- Intent filter for OptionsActivity -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+    </activity>
+
+    <activity android:name=".RunsGraph"
+        android:exported="true">
+        <!-- Intent filter for OptionsActivity -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+    </activity>
+
+
     </application>
 
 </manifest>

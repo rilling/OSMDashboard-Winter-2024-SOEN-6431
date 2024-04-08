@@ -11,6 +11,7 @@ import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.net.Uri;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
@@ -749,12 +750,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
     private PathLayer addNewPolyline(int trackColor) {
         // Define stroke width for the path
-        float strokeWidth = 10f;
+//        float strokeWidth = 10f;
         polyline = new PathLayer(map, trackColor, strokeWidth);
         //Adding border color
-        polyline.setBorderColor(Color.RED);
+//        polyline.setBorderColor(Color.RED);
         //Adjusting border width
-        polyline.setBorderWidth(strokeWidth + 2)
+//        polyline.setBorderWidth(strokeWidth + 2);
         polylinesLayer.layers.add(polyline);
         return this.polyline;
     }
