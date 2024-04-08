@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_marginTop="126dp"
-        android:text="@string/distance_vs_time_distribution"
+        android:text="@string/Distance_vs_Time_distribution"
         android:textColor="@android:color/black"
         android:textSize="18sp" />
 
