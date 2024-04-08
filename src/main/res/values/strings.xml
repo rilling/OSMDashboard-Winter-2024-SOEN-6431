@@ -107,5 +107,6 @@
     <string name="distancegraph">distancegraph</string>
     <string name="durationgraph">durationgraph</string>
     <string name="runsgraph">runsgraph</string>
+    <string name="average_elevation_vs_speed_range" />
 
 </resources>
