@@ -251,7 +251,8 @@ public class DownloadActivity extends BaseActivity {
                     if (input != null) {
                         input.close();
                     }
-                } catch (IOException ignored) {
+                } catch (IOException e) {
+                    Log.e(TAG, "IO Exception occurred", e);
                 }
 
                 if (connection != null) {
@@ -369,7 +370,7 @@ public class DownloadActivity extends BaseActivity {
             this.extractMapFromZIP = extractMapFromZIP;
         }
 
-        abstract public Uri getDirectoryUri();
+        public abstract Uri getDirectoryUri();
 
         public int getOverwriteMessageId() {
             return overwriteMessageId;

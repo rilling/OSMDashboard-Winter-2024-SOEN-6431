@@ -28,7 +28,7 @@ public class Waypoint {
     public static final String LATITUDE = "latitude"; // latitude
     public static final String PHOTOURL = "photoUrl"; // url for the photo
 
-    public static final String[] PROJECTION = {
+    protected static final String[] PROJECTION = {
             ID,
             NAME,
             DESCRIPTION,
