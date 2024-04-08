@@ -91,6 +91,8 @@ import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
 import de.storchp.opentracks.osmplugin.dashboardapi.APIConstants;
+import de.storchp.opentracks.osmplugin.dashboardapi.ChairLift;
+import de.storchp.opentracks.osmplugin.dashboardapi.ChairLiftElements;
 import de.storchp.opentracks.osmplugin.dashboardapi.SkiElements;
 import de.storchp.opentracks.osmplugin.dashboardapi.Track;
 import de.storchp.opentracks.osmplugin.dashboardapi.TrackPoint;
@@ -716,6 +718,10 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
                     // extracting data
                     JSONArray elements = jsonResponse.getJSONArray("elements");
+
+                    // integrate chair_lift tags into tracks
+                    ChairLift chairLift = ChairLift.getInstance(); // singleton class
+                    chairLift.clearData();
                     for (int i = 0; i < elements.length(); i++) {
                         JSONObject element = elements.getJSONObject(i);
                         String type = element.getString("type");
@@ -724,6 +730,10 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
                         JSONArray geometry = element.getJSONArray("geometry"); // coordinates
                         String name = tags.optString("name", "Unnamed");
+
+                        ChairLiftElements chairLiftElements = ChairLiftElements.parseJsonElement(element);
+                        chairLift.addChairLiftData(chairLiftElements); // adds chairLift element list in the chairLifts
+
                         // Now you can use these variables as needed
                         Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
                     }
