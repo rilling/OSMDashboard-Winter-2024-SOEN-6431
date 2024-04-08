@@ -76,6 +76,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.IntBuffer;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -156,6 +157,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private int strokeWidth;
     private int protocolVersion = 1;
     private TrackPointsDebug trackPointsDebug;
+    private float averageSpeed;
+    private List<Double> averageSpeedperSegment = new ArrayList<>();
 
 
     @Override
@@ -180,6 +183,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         map.getMapPosition().setZoomLevel(MAP_DEFAULT_ZOOM_LEVEL);
 
         binding.map.fullscreenButton.setOnClickListener(v -> switchFullscreen());
+        binding.map.averageButton.setOnClickListener(v -> getAverageSpeedPerInterval());
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             public void handleOnBackPressed() {
@@ -633,6 +637,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 double average = trackpointsBySegments.calcAverageSpeed();
                 double maxSpeed = trackpointsBySegments.calcMaxSpeed();
                 double averageToMaxSpeed = maxSpeed - average;
+                setAverageSpeedperSegment(trackpointsBySegments.segments());
                 var trackColorMode = PreferencesUtils.getTrackColorMode();
                 if (isOpenTracksRecordingThisTrack && !trackColorMode.isSupportsLiveTrack()) {
                     trackColorMode = TrackColorMode.DEFAULT;
@@ -722,6 +727,39 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             }
             updateDebugTrackPoints();
         }
+    }
+    private void setAverageSpeedperSegment(List<List<TrackPoint>> trackpointsBySegments){
+        averageSpeedperSegment.clear();
+        DecimalFormat df = new DecimalFormat("###.##");
+        for (var trackPoints : trackpointsBySegments) {
+            double average=0;
+            int sizeTrackPoints = trackPoints.size();
+            double speed=0;
+            for(var trackpoint:trackPoints){
+                speed += trackpoint.getSpeed();
+            }
+            average=speed/sizeTrackPoints;
+            averageSpeedperSegment.add(Double.valueOf(df.format(average)));
+        }
+    }
+    private void getAverageSpeedPerInterval(){
+        StringBuilder message= new StringBuilder();
+        int segmentNumber = 1;
+        for(var segment:averageSpeedperSegment){
+            message.append("Average speed for interval ")
+                    .append(String.valueOf(segmentNumber))
+                    .append(" is ")
+                    .append(segment)
+                    .append("\n\n");
+            segmentNumber++;
+        }
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setIcon(R.drawable.ic_logo_color_24dp)
+                .setTitle(R.string.app_name)
+                .setMessage(message.toString())
+                .setPositiveButton(android.R.string.ok,null )
+                .create();
+        dialog.show();
     }
 
     private void resetMapData() {
