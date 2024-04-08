@@ -12,10 +12,10 @@ public class ChairLiftElements {
     public Bounds bounds;
     public ArrayList<Object> nodes;
     public ArrayList<Geometry> geometry;
-    public Tags tags;
+    public ChairLiftTags tags;
 
     public ChairLiftElements(String type, long id, Bounds bounds, ArrayList<Object> nodes,
-                       ArrayList<Geometry> geometry, Tags tags) {
+                       ArrayList<Geometry> geometry, ChairLiftTags tags) {
         this.type = type;
         this.id = id;
         this.bounds = bounds;
@@ -70,7 +70,7 @@ public class ChairLiftElements {
         // Parsing tags
         JSONObject tagsObj = jsonObject.optJSONObject("tags");
         if (tagsObj != null) {
-            Tags tags = new Tags();
+            ChairLiftTags tags = new ChairLiftTags();
             tags.name = tagsObj.optString("name", "");
             tags.aerialway = tagsObj.optString("aerialway", "");
             tags.aerialway_occupancy = tagsObj.optString("aerialway:occupancy", "");
