@@ -31,6 +31,14 @@ public class ChairLift {
     public void clearData() {
         this.chairLifts.clear();
     }
+    public List<String> getChairLiftNames() {
+        List<String> chairLiftNames = new ArrayList<>();
+        for (ChairLiftElements element : chairLifts) {
+            chairLiftNames.add(element.tags.name);
+        }
+        return chairLiftNames;
+    }
+
 
 }
 
