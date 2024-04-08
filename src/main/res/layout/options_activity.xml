@@ -46,7 +46,7 @@
         android:layout_below="@id/button4"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="@string/distancegraph" />
+        android:text="@string/Distance_Graph" />
 
     <Button
         android:id="@+id/button6"
@@ -55,7 +55,7 @@
         android:layout_below="@id/button5"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="@string/durationgraph" />
+        android:text="@string/Duration_Graph" />
 
     <Button
         android:id="@+id/button7"
@@ -64,6 +64,6 @@
         android:layout_below="@id/button6"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="@string/runsgraph" />
+        android:text="@string/Runs_Graph" />
 
 </RelativeLayout>
