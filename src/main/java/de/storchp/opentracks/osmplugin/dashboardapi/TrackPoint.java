@@ -57,6 +57,7 @@ public class TrackPoint {
   
     public TrackPoint(long trackRecordId, long trackPointId, double latitude, double longitude, Integer type, double speed, Date time) {
         this.trackRecordId = trackRecordId;
+        this.trackPointId = trackPointId;
         if (MapUtils.isValid(latitude, longitude)) {
             this.latLong = new GeoPoint(latitude, longitude);
         } else {
