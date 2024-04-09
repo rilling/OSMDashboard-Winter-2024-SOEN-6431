@@ -94,7 +94,7 @@ public class TrackPoint {
             TrackPoint lastTrackPoint = null;
             List<TrackPoint> segment = null;
             while (cursor.moveToNext()) {
-                debug.setTrackpointsReceived(debug.getTrackpointsReceived() + 1);
+                //debug.trackpointsReceived++;
                 var trackPointId = cursor.getLong(cursor.getColumnIndexOrThrow(TrackPoint._ID));
                 var trackRecordId = cursor.getLong(cursor.getColumnIndexOrThrow(TrackPoint.TRACKID));
                 var latitude = cursor.getInt(cursor.getColumnIndexOrThrow(TrackPoint.LATITUDE)) / LAT_LON_FACTOR;
@@ -118,7 +118,7 @@ public class TrackPoint {
                 if (lastTrackPoint.hasValidLocation()) {
                     segment.add(lastTrackPoint);
                 } else if (!lastTrackPoint.isPause()) {
-                    debug.setTrackpointsInvalid(debug.getTrackpointsInvalid() + 1);
+                    //debug.trackpointsInvalid++;
                 }
                 if (lastTrackPoint.isPause()) {
                     debug.setTrackpointsPause(debug.getTrackpointsPause() + 1);
@@ -135,10 +135,9 @@ public class TrackPoint {
                 }
             }
         }
-        debug.setSegments(segments.size());
+        //debug.segments = segments.size();
 
-            return new TrackPointsBySegments(segments, debug);
-        }
+        return new TrackPointsBySegments(segments, debug);
     }
 
     public long getTrackPointId() {

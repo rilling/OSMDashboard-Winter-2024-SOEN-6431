@@ -3,7 +3,6 @@ package de.storchp.opentracks.osmplugin.dashboardapi;
 import java.util.ArrayList;
 import java.util.List;
 
-
 class Bounds {
     public double minlat;
     public double minlon;
