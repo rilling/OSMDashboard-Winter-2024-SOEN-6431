@@ -5,10 +5,13 @@ import static de.storchp.opentracks.osmplugin.dashboardapi.APIConstants.LAT_LON_
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 import org.oscim.core.GeoPoint;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import de.storchp.opentracks.osmplugin.utils.MapUtils;
@@ -49,8 +52,10 @@ public class TrackPoint {
     private final GeoPoint latLong;
     private final boolean pause;
     private final double speed;
-
-    public TrackPoint(long trackRecordId, long trackPointId, double latitude, double longitude, Integer type, double speed) {
+    private final Integer type;
+    private final Date time;
+  
+    public TrackPoint(long trackRecordId, long trackPointId, double latitude, double longitude, Integer type, double speed, Date time) {
         this.trackRecordId = trackRecordId;
         this.trackPointId = trackPointId;
         if (MapUtils.isValid(latitude, longitude)) {
@@ -60,6 +65,8 @@ public class TrackPoint {
         }
         this.pause = type != null ? type == 3 : latitude == PAUSE_LATITUDE;
         this.speed = speed;
+        this.time = time;
+        this.type = type;
     }
 
     public boolean hasValidLocation() {
@@ -94,30 +101,35 @@ public class TrackPoint {
                 var longitude = cursor.getInt(cursor.getColumnIndexOrThrow(TrackPoint.LONGITUDE)) / LAT_LON_FACTOR;
                 var typeIndex = cursor.getColumnIndex(TrackPoint.TYPE);
                 var speed = cursor.getDouble(cursor.getColumnIndexOrThrow(TrackPoint.SPEED));
+                var timeValue = cursor.getLong(cursor.getColumnIndexOrThrow(TrackPoint.TIME));
 
+                Date time = new Date(timeValue);
                 Integer type = null;
                 if (typeIndex > -1) {
                     type = cursor.getInt(typeIndex);
-                }
 
                 if (lastTrackPoint == null || lastTrackPoint.trackRecordId != trackRecordId) {
                     segment = new ArrayList<>();
                     segments.add(segment);
                 }
 
-                lastTrackPoint = new TrackPoint(trackRecordId, trackPointId, latitude, longitude, type, speed);
+                lastTrackPoint = new TrackPoint(trackRecordId, trackPointId, latitude, longitude, type, speed, time);
+
                 if (lastTrackPoint.hasValidLocation()) {
                     segment.add(lastTrackPoint);
                 } else if (!lastTrackPoint.isPause()) {
                     //debug.trackpointsInvalid++;
                 }
                 if (lastTrackPoint.isPause()) {
-                    //debug.trackpointsPause++;
-                    if (!lastTrackPoint.hasValidLocation() && (!segment.isEmpty())) {
-                           var previousTrackpoint = segment.get(segment.size() - 1);
-                           if (previousTrackpoint.hasValidLocation()) {
-                               segment.add(new TrackPoint(trackRecordId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed));
-                           }
+                    debug.setTrackpointsPause(debug.getTrackpointsPause() + 1);
+                    if (!lastTrackPoint.hasValidLocation()) {
+                        if (segment.size() > 0) {
+                            var previousTrackpoint = segment.get(segment.size() - 1);
+                            if (previousTrackpoint.hasValidLocation()) {
+                                segment.add(new TrackPoint(trackRecordId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed, time));
+                            }
+                        }
+                        lastTrackPoint = null;
                     }
                     lastTrackPoint = null;
                 }
@@ -143,5 +155,10 @@ public class TrackPoint {
     public double getSpeed() {
         return speed;
     }
-    
+    public Date getTime(){
+        return time;
+    }
+    public Integer getType() {
+        return type;
+    }
 }
