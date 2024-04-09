@@ -651,8 +651,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         }
                     }
                     for (var trackPoint : trackPoints) {
+                        double frequency = 1; //frequency is being calculated based on the avg speed
                         lastTrackPointId = trackPoint.getTrackPointId();
-
+                        if (trackPoint.getSpeed() > average) {
+                            //if track avg speed is higher than avg then it is counted as it is highly used
+                            frequency = 2;
+                        }
                         if (trackPoint.getTrackId() != lastTrackId) {
                             if (trackColorMode == TrackColorMode.BY_TRACK) {
                                 trackColor = colorCreator.nextColor();
@@ -665,7 +669,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
                         if (trackColorMode == TrackColorMode.BY_SPEED) {
                             trackColor = MapUtils.getTrackColorBySpeed(average, averageToMaxSpeed, trackPoint);
-                            polyline = addNewPolyline(trackColor);
+                            polyline = addNewPolyline(trackColor, frequency);
                             if (endPoint != null) {
                                 polyline.addPoint(endPoint);
                             } else if (startPoint != null) {
@@ -674,7 +678,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         } else {
                             if (polyline == null) {
                                 Log.d(TAG, "Continue new segment.");
-                                polyline = addNewPolyline(trackColor);
+                                polyline = addNewPolyline(trackColor, frequency);
                             }
                         }
 
@@ -862,11 +866,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         }
     }
 
-    private PathLayer addNewPolyline(int trackColor) {
+    private PathLayer addNewPolyline(int trackColor, double frequency) {
         //Adjusting the width
-        float strokeWidth = 10f;
+        float strokeWidth = updateStrokeWidth(frequency); //Get stroke width according to frequency
         float borderWidth = 13f;
 
+        //Creating a border polyline
 
         PathLayer borderpolyline =new PathLayer(map, Color.BLACK,borderWidth);
         polylinesLayer.layers.add(borderpolyline);
@@ -1086,7 +1091,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         }
         if (position != null) {
             // Add a marker to the layer
-            map.layers().add(addNewPolyline(Color.BLUE));
+            map.layers().add(addNewPolyline(Color.BLUE, 1));
         }
     }
 
@@ -1117,9 +1122,13 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
             if (position != null) {
                 // Add a marker or symbol to represent the SkiElement on the map
-                map.layers().add(addNewPolyline(Color.BLUE));
+                map.layers().add(addNewPolyline(Color.BLUE, 1));
             }
         }
+    }
+    private float updateStrokeWidth(double frequency) {
+        // frequency is added to the stroke width according to the frequency.
+        return (float) (7f * frequency);
     }
 
 }
