@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="@string/bar_graph_1" />
+        android:text="@string/frequency_vs_speed_range" />
 
     <Button
         android:id="@+id/button2"
@@ -19,7 +19,7 @@
         android:layout_below="@id/button1"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="@string/bar_graph_2" />
+        android:text="@string/average_elevation_vs_speed_range" />
 
     <Button
         android:id="@+id/button3"
@@ -28,7 +28,7 @@
         android:layout_below="@id/button2"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="@string/bar_graph_3" />
+        android:text="@string/frequency_vs_time_distribution" />
 
     <Button
         android:id="@+id/button4"

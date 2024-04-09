@@ -2,6 +2,7 @@ package de.storchp.opentracks.osmplugin;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.RelativeLayout;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.Description;
@@ -55,11 +56,18 @@ public class Option1 extends MapsActivity {
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setGranularity(1f);
         xAxis.setLabelCount(numSpeedRanges);
+        xAxis.setLabelRotationAngle(45);
+
 
         Description description = new Description();
         description.setText("Speed Distribution");
         description.setTextSize(16f);
         barChart.setDescription(description);
+
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) barChart.getLayoutParams();
+        layoutParams.setMargins(0, 0, 100, 0); // Adjust right margin as needed
+        barChart.setLayoutParams(layoutParams);
+
 
         barChart.invalidate(); // Refresh the chart
     }
