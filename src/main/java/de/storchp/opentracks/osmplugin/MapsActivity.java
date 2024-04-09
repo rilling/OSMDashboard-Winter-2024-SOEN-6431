@@ -990,12 +990,10 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             borderLine.addPoint(startPoint);
             borderLine.addPoint(endPoint);
         }
-
-
-
         map.layers().add(borderLine);
         map.updateMap(true);
-=======
+    }
+    
     private List<Segment> getSegments() {
         List<Segment> segments = new ArrayList<>();
         for (int i = 0; i < trackPoints.size() - 1; i++) {

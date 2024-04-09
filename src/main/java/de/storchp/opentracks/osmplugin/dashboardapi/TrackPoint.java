@@ -139,6 +139,7 @@ public class TrackPoint {
 
         return new TrackPointsBySegments(segments, debug);
     }
+    }
 
     public long getTrackPointId() {
         return trackPointId;
