@@ -14,6 +14,9 @@ import de.storchp.opentracks.osmplugin.dashboardapi.TrackPoint;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,7 +27,7 @@ import java.util.Map;
 
 public class Option3 extends MapsActivity {
     public static final List<Pair<Double, String>> speedTimeEntries = new ArrayList<>();
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.US);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,12 +44,11 @@ public class Option3 extends MapsActivity {
             Log.d("time", String.valueOf(entry));
 
             try {
-                Date date = sdf.parse(time); // Parse the time string to a Date object
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(date);
-                int hour = calendar.get(Calendar.HOUR_OF_DAY);
+                String timee = entry.second;
+                LocalDateTime dateTime = LocalDateTime.parse(timee, formatter);
+                int hour = dateTime.getHour();
                 hourCounts.put(hour, hourCounts.getOrDefault(hour, 0) + 1);
-            } catch (ParseException e) {
+            } catch (DateTimeParseException e) {
                 Log.e("TrackPointTime", "Error parsing timestamp: " + time, e);
             }
         }

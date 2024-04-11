@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import android.view.View;
 import android.widget.AdapterView;
@@ -70,11 +71,11 @@ public class Option4 extends MapsActivity {
 
 
 
-    private List<Entry> getTimeAverageEntries(int windowSize){
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private List<Entry> getTimeAverageEntries(int windowSize) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.US);
         List<Entry> entries = new ArrayList<>();
         for (int i = windowSize - 1; i < TrackPoint.speedTimeEntries.size(); i++) {
-            float sum = 0;
+            float sum = 0f;
             for (int j = i - (windowSize - 1); j < i; j++) {
                 String currentTimeStr = TrackPoint.speedTimeEntries.get(j).second;
                 String nextTimeStr = TrackPoint.speedTimeEntries.get(j + 1).second;
@@ -83,7 +84,7 @@ public class Option4 extends MapsActivity {
                 LocalDateTime nextTime = LocalDateTime.parse(nextTimeStr, dateTimeFormatter);
 
                 Duration duration = Duration.between(currentTime, nextTime);
-                float timeInSeconds = (float)duration.getSeconds();
+                float timeInSeconds = (float) duration.getSeconds();
                 // Convert time to hours
                 float timeInHours = timeInSeconds / 3600; // 1 hour = 3600 seconds
                 sum += timeInHours;
@@ -93,7 +94,8 @@ public class Option4 extends MapsActivity {
         }
         return entries;
     }
-    
+
+
     private List<Entry> getMovingAverageEntries(int windowSize) {
         List<Entry> entries = new ArrayList<>();
         for (int i = 0; i < TrackPoint.speedTimeEntries.size(); i++) {

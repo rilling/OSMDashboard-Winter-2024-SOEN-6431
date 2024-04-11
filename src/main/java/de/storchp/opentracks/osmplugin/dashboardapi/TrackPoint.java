@@ -61,10 +61,11 @@ public class TrackPoint {
     private final GeoPoint latLong;
     private final boolean pause;
     private final double speed;
-    private final String time; // Assuming time is stored as a long timestamp
+    private final Integer type;
+    private final Date time;
     private final double elevation;
 
-    public TrackPoint(long trackId, long trackPointId, double latitude, double longitude, Integer type, double speed, double elevation, String time) {
+    public TrackPoint(long trackId, long trackPointId, double latitude, double longitude, Integer type, double speed, double elevation, Date time) {
         this.trackId = trackId;
         this.trackPointId = trackPointId;
         if (MapUtils.isValid(latitude, longitude)) {
@@ -76,6 +77,7 @@ public class TrackPoint {
         this.speed = speed;
         this.elevation = elevation;
         this.time = time;
+        this.type = type;
     }
 
     public boolean hasValidLocation() {
@@ -122,22 +124,13 @@ public class TrackPoint {
                 var longitude = cursor.getInt(cursor.getColumnIndexOrThrow(TrackPoint.LONGITUDE)) / LAT_LON_FACTOR;
                 var typeIndex = cursor.getColumnIndex(TrackPoint.TYPE);
                 var speed = cursor.getDouble(cursor.getColumnIndexOrThrow(TrackPoint.SPEED));
-
-                var time = cursor.getString(cursor.getColumnIndexOrThrow(TrackPoint.TIME)); // Fetch the time value for the current track point
+                var timeValue = cursor.getLong(cursor.getColumnIndexOrThrow(TrackPoint.TIME));
                 var elevation = cursor.getDouble(cursor.getColumnIndexOrThrow(TrackPoint.ELEVATION));
-                Log.d("ttt", "Fetched time from cursor: " + time);
-                String formattedTime;
-                try {
-                    long timeInMillis = Long.parseLong(time);
-                    Date date = new Date(timeInMillis);
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    formattedTime = dateFormat.format(date);
-                } catch (NumberFormatException e) {
-                    Log.e("TrackPointTime", "Error parsing timestamp: " + time, e);
-                    formattedTime = "Invalid timestamp"; // Fallback in case of parsing error
-                }
 
-                TrackPoint.addSpeedTimeEntry(speed, formattedTime);
+
+                Date time = new Date(timeValue);
+
+                TrackPoint.addSpeedTimeEntry(speed, String.valueOf(time));
                 TrackPoint.addSpeedElevationEntry(speed,elevation);
 
                 Integer type = null;
@@ -150,7 +143,7 @@ public class TrackPoint {
                     segments.add(segment);
                 }
 
-                lastTrackPoint = new TrackPoint(trackId, trackPointId, latitude, longitude, type, speed,elevation,formattedTime);
+                lastTrackPoint = new TrackPoint(trackId, trackPointId, latitude, longitude, type, speed,elevation,time);
                 if (lastTrackPoint.hasValidLocation()) {
                     segment.add(lastTrackPoint);
                 } else if (!lastTrackPoint.isPause()) {
@@ -162,7 +155,7 @@ public class TrackPoint {
                         if (segment.size() > 0) {
                             var previousTrackpoint = segment.get(segment.size() - 1);
                             if (previousTrackpoint.hasValidLocation()) {
-                                segment.add(new TrackPoint(trackId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed,elevation,formattedTime));
+                                segment.add(new TrackPoint(trackId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed,elevation,time));
                             }
                         }
                         lastTrackPoint = null;
@@ -191,16 +184,11 @@ public class TrackPoint {
         return speed;
     }
 
-    public String getTime() {
-//        Log.d("TrackPointTime", "Entering getTime method");
-//        try {
-//            OffsetDateTime parsedTime = OffsetDateTime.parse(time, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-//            String formattedTime = parsedTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-//            Log.d("FormattedTime", formattedTime); // Correct logging to see the formatted time
-//            return formattedTime; // Return the formatted time instead of the original string
-//        } catch (Exception e) {
-//            Log.e("TrackPointTime", "Error parsing time: " + time, e);
-        return time; // Fallback to original time string in case of parsing error
+    public Date getTime(){
+        return time;
+    }
+    public Integer getType() {
+        return type;
     }
 
 
