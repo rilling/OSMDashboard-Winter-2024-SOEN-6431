@@ -64,5 +64,10 @@
         <item>@string/settings_night_mode_option_day</item>
         <item>@string/settings_night_mode_option_night</item>
     </string-array>
+    <string-array name="window_size_options">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+    </string-array>
 
 </resources>

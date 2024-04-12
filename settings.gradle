@@ -12,13 +12,13 @@ plugins {
     id 'org.jetbrains.kotlin.android' version '1.9.22' apply false
     id 'de.mannodermaus.android-junit5' version '1.10.0.0' apply false
 }
-dependencyResolutionManagement {
-
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-    }
-}
+//dependencyResolutionManagement {
+//
+//    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+//    repositories {
+//        google()
+//        mavenCentral()
+//        maven { url 'https://jitpack.io' }
+//    }
+//}
 rootProject.name = 'OSMDashboard'

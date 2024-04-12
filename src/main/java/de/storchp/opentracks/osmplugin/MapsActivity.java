@@ -12,7 +12,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+
 import android.graphics.Typeface;
+
 import android.net.Uri;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
@@ -31,9 +33,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+
+import android.widget.Button;
+import android.widget.RelativeLayout;
+
 import android.widget.FrameLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
+
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -223,6 +230,42 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         var intent = getIntent();
         if (intent != null) {
             onNewIntent(intent);
+        }
+
+
+        Button newButton = new Button(this);
+        newButton.setText("Visualize");
+
+        // Set layout parameters for the button
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT
+        );
+
+        // Set position of the button
+        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        params.setMargins(16, 16, 16, 16); // Adjust margins as needed
+        try {
+            // Add the button to the layout
+            RelativeLayout layout = findViewById(R.id.map); // Replace with your actual layout id
+            layout.addView(newButton, params);
+
+            // Set click listener for the button
+            newButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        Intent intent = new Intent(MapsActivity.this, OptionsActivity.class);
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        Log.e("Button Click Error", "Error starting OptionsActivity: " + e.getMessage());
+                    }
+                }
+            });
+        }
+        catch (Exception e) {
+            Log.e("Button Add Error", "Error adding button to layout: " + e.getMessage());
         }
 
         ((TrailSelectionMapView) binding.map.mapView).setOnMapTouchListener(geoPoint -> {
@@ -497,6 +540,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         }
 
         return true; // Data passes all validation checks
+
     }
 
 
@@ -1358,6 +1402,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         }
     }
 
+
     private PathLayer addNewPolyline(int trackColor, double frequency) {
         //Adjusting the width
         float strokeWidth = updateStrokeWidth(frequency); //Get stroke width according to frequency
@@ -1369,6 +1414,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         polylinesLayer.layers.add(borderpolyline);
 
         polyline = new PathLayer(map, trackColor, strokeWidth);
+
         polylinesLayer.layers.add(polyline);
         return polyline;
     }
