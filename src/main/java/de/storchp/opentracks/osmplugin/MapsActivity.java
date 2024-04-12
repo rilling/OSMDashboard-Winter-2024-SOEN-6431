@@ -12,6 +12,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+
+import android.graphics.Typeface;
+
 import android.net.Uri;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
@@ -19,16 +22,25 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
 import android.text.SpannableString;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+
 import android.widget.Button;
 import android.widget.RelativeLayout;
+
+import android.widget.FrameLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +51,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONArray;
 import org.oscim.android.MapPreferences;
 import org.oscim.backend.CanvasAdapter;
 import org.oscim.core.BoundingBox;
@@ -54,6 +69,10 @@ import org.oscim.layers.tile.buildings.BuildingLayer;
 import org.oscim.layers.tile.vector.VectorTileLayer;
 import org.oscim.layers.tile.vector.labeling.LabelLayer;
 import org.oscim.map.Map;
+
+import de.storchp.opentracks.osmplugin.dashboardapi.TrackPointsBySegments;
+import de.storchp.opentracks.osmplugin.maps.TrailSelectionMapView;
+
 import org.oscim.renderer.BitmapRenderer;
 import org.oscim.renderer.GLViewport;
 import org.oscim.scalebar.DefaultMapScaleBar;
@@ -76,11 +95,16 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.IntBuffer;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipInputStream;
 
@@ -89,8 +113,14 @@ import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
 import de.storchp.opentracks.osmplugin.dashboardapi.APIConstants;
+import de.storchp.opentracks.osmplugin.dashboardapi.Geometry;
+import de.storchp.opentracks.osmplugin.dashboardapi.ChairLift;
+import de.storchp.opentracks.osmplugin.dashboardapi.ChairLiftElements;
+import de.storchp.opentracks.osmplugin.dashboardapi.SkiElements;
+import de.storchp.opentracks.osmplugin.dashboardapi.SegmentFinder;
 import de.storchp.opentracks.osmplugin.dashboardapi.Track;
 import de.storchp.opentracks.osmplugin.dashboardapi.TrackPoint;
+import de.storchp.opentracks.osmplugin.dashboardapi.Trail;
 import de.storchp.opentracks.osmplugin.dashboardapi.Waypoint;
 import de.storchp.opentracks.osmplugin.databinding.ActivityMapsBinding;
 import de.storchp.opentracks.osmplugin.maps.MovementDirection;
@@ -103,7 +133,24 @@ import de.storchp.opentracks.osmplugin.utils.TrackColorMode;
 import de.storchp.opentracks.osmplugin.utils.TrackPointsDebug;
 import de.storchp.opentracks.osmplugin.utils.TrackStatistics;
 import okhttp3.Cache;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import org.json.JSONObject;
+import org.json.JSONArray;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import de.storchp.opentracks.osmplugin.dashboardapi.SkiElements;
+import de.storchp.opentracks.osmplugin.dashboardapi.Trail;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGestureListener<MarkerInterface> {
 
@@ -118,6 +165,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private boolean isOpenTracksRecordingThisTrack;
     private ActivityMapsBinding binding;
     private Map map;
+    private List<TrackPoint> trackPoints = new ArrayList<>();
+
     private MapPreferences mapPreferences;
     private IRenderTheme renderTheme;
     private BoundingBox boundingBox;
@@ -142,6 +191,10 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private int strokeWidth;
     private int protocolVersion = 1;
     private TrackPointsDebug trackPointsDebug;
+    private float averageSpeed;
+    private List<Double> averageSpeedperSegment = new ArrayList<>();
+    private List<Track> storedTracksData = new ArrayList<>();
+    private TrackPointsBySegments storedTrackPointsBySegments;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,7 +205,8 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        strokeWidth = PreferencesUtils.getStrokeWidth();
+        strokeWidth = 8;
+        //strokeWidth = PreferencesUtils.getStrokeWidth();
         mapMode = PreferencesUtils.getMapMode();
 
         map = binding.map.mapView.map();
@@ -165,7 +219,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         map.getMapPosition().setZoomLevel(MAP_DEFAULT_ZOOM_LEVEL);
 
         binding.map.fullscreenButton.setOnClickListener(v -> switchFullscreen());
-
+        binding.map.averageButton.setOnClickListener(v -> getAverageSpeedPerInterval());
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             public void handleOnBackPressed() {
                 navigateUp();
@@ -177,6 +231,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         if (intent != null) {
             onNewIntent(intent);
         }
+
 
         Button newButton = new Button(this);
         newButton.setText("Visualize");
@@ -212,7 +267,362 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         catch (Exception e) {
             Log.e("Button Add Error", "Error adding button to layout: " + e.getMessage());
         }
+
+        ((TrailSelectionMapView) binding.map.mapView).setOnMapTouchListener(geoPoint -> {
+            // Assuming you have a method getSegments() that returns a List of segment objects
+            // Each segment object should have a start and end GeoPoint
+            List<Segment> segments = getSegments(); // You need to implement this method based on your data structure
+            resetMapData();
+            Segment closestSegment = null;
+            Segment nextSegment = null;
+            int segmentNumber = 0;
+            double minDistance = Double.MAX_VALUE;
+            for (int i = 0; i < segments.size(); i++) {
+                double distance = SegmentFinder.distanceToSegment(segments.get(i).start, segments.get(i).end, geoPoint);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestSegment = segments.get(i);
+                    segmentNumber = i;
+                    if((i+1)<segments.size()){
+                        nextSegment = segments.get(i+1);
+                    }
+
+                }
+            }
+
+            if (closestSegment != null) {
+                Log.d("MapsActivity", "Closest segment start: " + closestSegment.start.getLatitude() + "," + closestSegment.start.getLongitude() +
+                        " end: " + closestSegment.end.getLatitude() + "," + closestSegment.end.getLongitude());
+                resetMapData();
+                if (polylinesLayer != null) {
+                    map.layers().remove(polylinesLayer);
+                }
+                TrackPoint selectedSegmentInTrack = findSegmentClosestToSelectedSegment(closestSegment);
+                TrackPoint nextSelectedSegment = findSegmentClosestToSelectedSegment(nextSegment);
+                var trackColorMode = PreferencesUtils.getTrackColorMode();
+                int segmentColor = trackColor;
+                int currentStrokeWidth = Math.max(strokeWidth, 4);
+                if(trackColorMode == TrackColorMode.BY_SPEED && this.storedTrackPointsBySegments != null){
+                    double average = this.storedTrackPointsBySegments.calcAverageSpeed();
+                    double maxSpeed = this.storedTrackPointsBySegments.calcMaxSpeed();
+                    double averageToMaxSpeed = maxSpeed - average;
+                    segmentColor = MapUtils.getTrackColorBySpeed(average, averageToMaxSpeed, selectedSegmentInTrack);
+
+                }
+
+                polyline = new PathLayer(map, segmentColor, currentStrokeWidth); // Adjust color and stroke width as needed
+
+                // Add start and end points to the PathLayer
+                polyline.addPoint(closestSegment.start);
+                polyline.addPoint(closestSegment.end);
+                // Add the PathLayer to the map
+                map.layers().add(polyline);
+                // Optionally, animate the map view to center on the segment
+                map.animator().animateTo(closestSegment.start);
+                                MarkerSymbol startMarkerSymbol = MapUtils.createMarkerSymbol(
+                        this,
+                        R.drawable.ic_marker_red_pushpin_modern,
+                        false,
+                        MarkerSymbol.HotspotPlace.BOTTOM_CENTER
+                );
+                MarkerSymbol endMarkerSymbol = MapUtils.createMarkerSymbol(
+                        this,
+                        R.drawable.ic_marker_green_pushpin_modern,
+                        false,
+                        MarkerSymbol.HotspotPlace.BOTTOM_CENTER
+                );
+
+                MarkerItem startMarker = new MarkerItem("Start", "Start", closestSegment.start);
+                startMarker.setMarker(startMarkerSymbol);
+                MarkerItem endMarker = new MarkerItem("End", "End", closestSegment.end);
+                endMarker.setMarker(endMarkerSymbol);
+                waypointsLayer.addItem(startMarker);
+                waypointsLayer.addItem(endMarker);
+                
+                String intentAction = getIntent().getAction();
+                if (Objects.nonNull(intentAction) && intentAction.equals(APIConstants.ACTION_DASHBOARD)) {
+                    displaySelectedTrailTable(selectedSegmentInTrack,nextSelectedSegment);
+                }
+            }
+        });
+
     }
+    private TrackPoint findSegmentClosestToSelectedSegment(Segment closestSegment) {
+        TrackPoint selectedSegmentInTrack = null;
+        List<TrackPoint> storedSegments = storedTrackPointsBySegments.segments().get(0);
+        for(TrackPoint trackPoint: storedSegments){
+            GeoPoint trackPointGeoPoint = trackPoint.getLatLong();
+            if(trackPointGeoPoint.getLatitude() == closestSegment.start.getLatitude() || trackPointGeoPoint.getLongitude() == closestSegment.start.getLongitude()){
+                selectedSegmentInTrack = trackPoint;
+            }
+        }
+
+        return selectedSegmentInTrack;
+    }
+
+    private void displaySelectedTrailTable(TrackPoint selectedSegmentInTrack, TrackPoint nextSelectedSegment) {
+        TableLayout tableLayout = createTableLayout(selectedSegmentInTrack,nextSelectedSegment);
+
+        // Get the root layout of the activity
+        ViewGroup rootLayout = findViewById(android.R.id.content);
+
+        // Create layout parameters for the table
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        layoutParams.gravity = Gravity.BOTTOM; // Position the table at the bottom of the screen
+
+        // Set margins for the table layout (optional)
+        int margin = getResources().getDimensionPixelSize(R.dimen.table_padding);
+        layoutParams.setMargins(margin, margin, margin, margin);
+
+        // Set padding and background color for the table layout
+        margin = getResources().getDimensionPixelSize(R.dimen.table_padding);
+        tableLayout.setPadding(margin, margin, margin, margin);
+        tableLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.table_background_color));
+        tableLayout.setBackgroundResource(R.drawable.ic_table_border);
+
+        // Add the table layout to the root layout with the specified layout parameters
+        rootLayout.addView(tableLayout, layoutParams);
+    }
+
+    private TableLayout createTableLayout(TrackPoint selectedSegmentInTrack,TrackPoint nextSegment) {
+        // Create a new TableLayout
+        TableLayout tableLayout = new TableLayout(this);
+        tableLayout.setLayoutParams(new TableLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        tableLayout.setBackgroundResource(R.drawable.ic_table_border); // Define a drawable resource for table borders
+        populateSelectedTrailDetails(selectedSegmentInTrack, tableLayout, nextSegment);
+        return tableLayout;
+    }
+
+    private void populateSelectedTrailDetails(TrackPoint selectedSegmentInTrack, TableLayout tableLayout, TrackPoint nextSegment) {
+        List<Track> tracksData = getTracksDataForTable();
+        Track trackToBePopulated = tracksData.get(0);
+        drawTableLine(tableLayout);
+        long differenceInMilliseconds = nextSegment.getTime().getTime() - selectedSegmentInTrack.getTime().getTime();
+
+// Convert the difference from milliseconds to minutes
+        long differenceInMinutes = differenceInMilliseconds / (60 * 1000);
+
+// If you want to get the difference in a specific String format like "XX min XX sec", you can do:
+        long differenceInSeconds = differenceInMilliseconds / 1000; // total seconds
+        long seconds = differenceInSeconds % 60; // remaining seconds
+        String formattedDifference = Math.abs(differenceInMinutes) + " min " + Math.abs(seconds) + " sec";
+//        Log.d("checkoutput",String.valueOf(selectedSegmentInTrack.getDistance()));
+        TableRow headerRow = new TableRow(this);
+        headerRow.setLayoutParams(new TableRow.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        // Create TextViews for header row
+        TextView attributeHeader = createTableCell("Attribute");
+        TextView detailsHeader = createTableCell("Details");
+        attributeHeader.setTypeface(null, Typeface.BOLD);
+        detailsHeader.setTypeface(null, Typeface.BOLD);
+        headerRow.addView(attributeHeader);
+        headerRow.addView(detailsHeader);
+        tableLayout.addView(headerRow);
+        drawTableLine(tableLayout);
+
+
+        double totalDistanceMeter = trackToBePopulated.totalDistanceMeter();
+        double totalDistanceKm = totalDistanceMeter / 1000; // Convert meters to kilometers
+        String formattedTotalDistance = String.format("%.2f", totalDistanceKm);
+
+
+        //calculate average speed for whole track.
+        double avgSpeedInMeterPerSec = getAvgSpeed(trackToBePopulated);
+        //converting average speed in Km/Hr from m/s.
+        double avgSpeedInKmPerHour = getSpeedInKmPerHour(avgSpeedInMeterPerSec);
+        //formatting speed to show in table.
+        String formattedAvgSpeedInKmPerHour = formatSpeed(avgSpeedInKmPerHour);
+
+        //getting speed for individual segment
+        double speedForSegment = getSegmentSpeed(selectedSegmentInTrack);
+        //converting segment speed in Km/Hr from m/s.
+        double segmentSpeedInKmPerHour = getSpeedInKmPerHour(speedForSegment);
+        //formatting segment speed to show in table.
+        String formattedSegmentSpeedInKmPerHour = formatSpeed(segmentSpeedInKmPerHour);
+
+        double timeInSecondsForSegment = differenceInMilliseconds / 1000.0; // Use the actual time difference for the segment
+
+// Calculate the distance for the segment using the segment speed (in meters)
+        double distanceForSegment = Math.abs(speedForSegment * timeInSecondsForSegment);
+
+
+
+
+        createTableRow("Trail Name", trackToBePopulated.trackname(), tableLayout);
+        createTableRow("Trail Distance", formattedTotalDistance + " km", tableLayout);
+        createTableRow("Trail Elevation", trackToBePopulated.maxElevationMeter() + " m", tableLayout);
+        createTableRow("Average Trail Speed", formattedAvgSpeedInKmPerHour + " km/h", tableLayout);
+        createTableRow("Time Taken", formattedDifference, tableLayout);
+        createTableRow("Segment Number", String.valueOf(selectedSegmentInTrack.getTrackPointId()), tableLayout);
+        createTableRow("Segment Speed", formattedSegmentSpeedInKmPerHour + " km/h", tableLayout);
+        createTableRow("Slope", String.valueOf(getSlopePercentage(distanceForSegment,trackToBePopulated.maxElevationMeter()))+ "%", tableLayout);
+    }
+
+
+    //average speed for whole track
+    private double getAvgSpeed(Track trackToBePopulated){
+        return trackToBePopulated.avgMovingSpeedMeterPerSecond();
+    }
+
+    //converting  speed in Km/Hr from m/s.
+    private double getSpeedInKmPerHour(double speedInMeterPerSec){
+        return (speedInMeterPerSec * 3.6);
+    }
+
+    //formatting speed to show in table.
+    private String formatSpeed(double speedKmPerHour){
+        return String.format("%.2f", speedKmPerHour);
+    }
+
+    //getting speed for individual segment
+    private double getSegmentSpeed(TrackPoint selectedSegmentOfTrack){
+        return selectedSegmentOfTrack.getSpeed();
+    }
+
+
+
+
+    private double getSlopePercentage(double distance, float elevation) {
+
+        double slopePercentage = (elevation / distance) *100 ;
+        if (slopePercentage > 100) {
+            slopePercentage = slopePercentage % 100;
+        }
+        // Format to xx.xx%
+        return Math.round(slopePercentage * 100.0) / 100.0;
+    }
+    /** @author sadiq
+     *  Method to validate track information data
+     */
+
+    private boolean validateDataFromTracksData(List<Track> tracksData) {
+        // Check if tracksData is not null and contains at least one track
+        if (tracksData == null || tracksData.isEmpty()) {
+            System.out.println("Tracks list does not contain any track data!");
+            return false;
+        }
+
+        // Get the first track from the list for validation
+        Track trackToBeValidated = tracksData.get(0);
+
+        // Check if the track name is not empty
+        if (TextUtils.isEmpty(trackToBeValidated.trackname())) {
+            System.out.println("Track name is NULL!");
+            return false;
+        }
+
+        // Check if total distance and max elevation are positive values
+        if (trackToBeValidated.totalDistanceMeter() <= 0 && trackToBeValidated.maxElevationMeter() <= 0) {
+            System.out.println("Distance and Elevation are invalid!");
+            return false;
+        }
+
+        // Check if average speed is a valid positive value
+        if (trackToBeValidated.avgSpeedMeterPerSecond() < 0) {
+            System.out.println("Average speed is invalid!");
+            return false;
+        }
+
+        // Check if total time is a valid positive value
+        if (trackToBeValidated.totalTimeMillis() <= 0) {
+            System.out.println("Total time value is invalid!");
+            return false;
+        }
+
+        return true; // Data passes all validation checks
+
+    }
+
+
+    private void createTableRow(String headerName, String headerDetails, TableLayout tableLayout) {
+        TableRow trailNameRow = new TableRow(this);
+        trailNameRow.setLayoutParams(new TableRow.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        TextView trailNameHeader = createTableCell(headerName);
+        TextView trailNameValue = createTableCell(headerDetails);
+        // Add TextViews to the table trailNameRow
+        trailNameRow.addView(trailNameHeader);
+        trailNameRow.addView(trailNameValue);
+        tableLayout.addView(trailNameRow);
+        drawTableLine(tableLayout);
+    }
+
+    private void drawTableLine(TableLayout tableLayout) {
+        // Add a horizontal line
+        View line = new View(this);
+        line.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                2 // Height of the line in pixels
+        ));
+        line.setBackgroundColor(Color.BLACK);
+        tableLayout.addView(line);
+    }
+
+    private TextView createTableCell(String text) {
+        // Create a TextView for a table cell
+        TextView textView = new TextView(this);
+        textView.setLayoutParams(new TableRow.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
+        ));
+        textView.setText(text);
+        textView.setGravity(Gravity.CENTER);
+        textView.setPadding(5, 5, 5, 5); // Add padding to the cell
+        textView.setBackgroundColor(ContextCompat.getColor(this, R.color.cell_color)); // Add color to cells
+        textView.setTextColor(ContextCompat.getColor(this, R.color.text_color)); // Set text color
+        return textView;
+    }
+
+    private List<Track> getTracksDataForTable() {
+        //TODO: Data expected from Group 16, including tracks details, segments details for each track, speed, chairlift names and other statistics
+        return this.storedTracksData;
+    }
+
+    private double distanceToSegment(GeoPoint start, GeoPoint end, GeoPoint point) {
+        double A = point.getLatitude() - start.getLatitude();
+        double B = point.getLongitude() - start.getLongitude();
+        double C = end.getLatitude() - start.getLatitude();
+        double D = end.getLongitude() - start.getLongitude();
+
+        double dot = A * C + B * D;
+        double lenSq = C * C + D * D;
+        double param = -1;
+        if (lenSq != 0) { // in case of zero length line
+            param = dot / lenSq;
+        }
+
+        double xx, yy;
+
+        if (param < 0) {
+            xx = start.getLatitude();
+            yy = start.getLongitude();
+        } else if (param > 1) {
+            xx = end.getLatitude();
+            yy = end.getLongitude();
+        } else {
+            xx = start.getLatitude() + param * C;
+            yy = start.getLongitude() + param * D;
+        }
+
+        double dx = point.getLatitude() - xx;
+        double dy = point.getLongitude() - yy;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
 
     private void switchFullscreen() {
         showFullscreen(!fullscreenMode);
@@ -570,6 +980,80 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         return Bitmap.createBitmap(bitmapSource, w, h, Bitmap.Config.ARGB_8888);
     }
 
+    private void drawLine(GeoPoint startPoint, GeoPoint endPoint, int color, int width) {
+
+        PathLayer borderLine = new PathLayer(map, Color.BLACK, width + 2); // Adjust border width as needed
+        borderLine.addPoint(startPoint);
+        borderLine.addPoint(endPoint);
+        map.layers().add(borderLine);
+
+        PathLayer line = new PathLayer(map, color, width);
+        line.addPoint(startPoint);
+        line.addPoint(endPoint);
+        map.layers().add(line);
+        map.updateMap(true);
+    }
+
+    private void drawSegmentedLine(List<GeoPoint> points, List<Integer> colors, int width) {
+        if (points == null || points.size() < 2) {
+            Log.e(TAG, "drawSegmentedLine: Invalid points list");
+            return;
+        }
+        if (colors == null || colors.size() != points.size() - 1) {
+            Log.e(TAG, "drawSegmentedLine: Number of colors does not match the number of segments");
+            return;
+        }
+
+        // Iterate through the points list to draw each segment with the corresponding color
+        for (int i = 0; i < points.size() - 1; i++) {
+            GeoPoint startPoint = points.get(i);
+            GeoPoint endPoint = points.get(i + 1);
+
+            if (startPoint==null || endPoint==null) {
+                Log.e(TAG, "drawSegmentedLine: Invalid points list have either null start-point or end-point");
+                continue;
+            }
+
+            int color = colors.get(i);
+
+            // Draw each segment individually
+            drawLine(startPoint, endPoint, color, width);
+            drawLine(startPoint, endPoint, Color.BLACK, width + 2);
+        }
+    }
+    private void drawTrackBorder(List<GeoPoint> trackPoints, int color, int width) {
+        if (trackPoints == null || trackPoints.size() < 2) {
+            Log.e(TAG, "drawTrackBorder: Invalid track points list");
+            return;
+        }
+
+        PathLayer borderLine = new PathLayer(map, color, width); // Border line color and width
+        for (int i = 0; i < trackPoints.size() - 1; i++) {
+            GeoPoint startPoint = trackPoints.get(i);
+            GeoPoint endPoint = trackPoints.get(i + 1);
+            borderLine.addPoint(startPoint);
+            borderLine.addPoint(endPoint);
+        }
+        map.layers().add(borderLine);
+        map.updateMap(true);
+    }
+    
+    private List<Segment> getSegments() {
+        List<Segment> segments = new ArrayList<>();
+        for (int i = 0; i < trackPoints.size() - 1; i++) {
+            TrackPoint startTrackPoint = trackPoints.get(i);
+            TrackPoint endTrackPoint = trackPoints.get(i + 1);
+
+            // Directly use the GeoPoint from your TrackPoint class
+            GeoPoint startPoint = startTrackPoint.getLatLong();
+            GeoPoint endPoint = endTrackPoint.getLatLong();
+
+            segments.add(new Segment(startPoint, endPoint));
+        }
+        return segments;
+    }
+
+
     private void readTrackpoints(Uri data, boolean update, int protocolVersion) {
         Log.i(TAG, "Loading trackpoints from " + data);
 
@@ -577,23 +1061,26 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             var showPauseMarkers = PreferencesUtils.isShowPauseMarkers();
             var latLongs = new ArrayList<GeoPoint>();
             int tolerance = PreferencesUtils.getTrackSmoothingTolerance();
-
+            GeoPoint startPoint = null; // Start point of the track
+            GeoPoint endPoint = null; // End point of the track
+            Log.i(TAG, "in sync " + data);
             try {
                 var trackpointsBySegments = TrackPoint.readTrackPointsBySegments(getContentResolver(), data, lastTrackPointId, protocolVersion);
+                this.storedTrackPointsBySegments = trackpointsBySegments;
                 if (trackpointsBySegments.isEmpty()) {
                     Log.d(TAG, "No new trackpoints received");
                     return;
                 }
-
                 double average = trackpointsBySegments.calcAverageSpeed();
                 double maxSpeed = trackpointsBySegments.calcMaxSpeed();
                 double averageToMaxSpeed = maxSpeed - average;
+                setAverageSpeedperSegment(trackpointsBySegments.segments());
                 var trackColorMode = PreferencesUtils.getTrackColorMode();
                 if (isOpenTracksRecordingThisTrack && !trackColorMode.isSupportsLiveTrack()) {
                     trackColorMode = TrackColorMode.DEFAULT;
                 }
-
                 for (var trackPoints : trackpointsBySegments.segments()) {
+                    Log.i(TAG, "in trackpoints " + data);
                     if (!update) {
                         polyline = null; // cut polyline on new segment
                         if (tolerance > 0) { // smooth track
@@ -601,36 +1088,44 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         }
                     }
                     for (var trackPoint : trackPoints) {
+                        double frequency = 1; //frequency is being calculated based on the avg speed
                         lastTrackPointId = trackPoint.getTrackPointId();
-
+                        if (trackPoint.getSpeed() > average) {
+                            //if track avg speed is higher than avg then it is counted as it is highly used
+                            frequency = 2;
+                        }
+                        this.trackPoints.add(trackPoint);
                         if (trackPoint.getTrackId() != lastTrackId) {
                             if (trackColorMode == TrackColorMode.BY_TRACK) {
                                 trackColor = colorCreator.nextColor();
                             }
                             lastTrackId = trackPoint.getTrackId();
                             polyline = null; // reset current polyline when trackId changes
-                            startPos = null;
-                            endPos = null;
+                            startPoint = null;
+                            endPoint = null;
                         }
 
                         if (trackColorMode == TrackColorMode.BY_SPEED) {
                             trackColor = MapUtils.getTrackColorBySpeed(average, averageToMaxSpeed, trackPoint);
-                            polyline = addNewPolyline(trackColor);
-                            if (endPos != null) {
-                                polyline.addPoint(endPos);
-                            } else if (startPos != null) {
-                                polyline.addPoint(startPos);
+                            polyline = addNewPolyline(trackColor, frequency);
+                            if (endPoint != null) {
+                                polyline.addPoint(endPoint);
+                            } else if (startPoint != null) {
+                                polyline.addPoint(startPoint);
                             }
                         } else {
                             if (polyline == null) {
                                 Log.d(TAG, "Continue new segment.");
-                                polyline = addNewPolyline(trackColor);
+                                polyline = addNewPolyline(trackColor, frequency);
                             }
                         }
 
-                        endPos = trackPoint.getLatLong();
-                        polyline.addPoint(endPos);
-                        movementDirection.updatePos(endPos);
+                        endPoint = trackPoint.getLatLong();
+                        polyline.addPoint(endPoint);
+
+                        if (startPoint == null) {
+                            startPoint = endPoint; // Set the start point initially
+                        }
 
                         if (trackPoint.isPause() && showPauseMarkers) {
                             var marker = MapUtils.createPauseMarker(this, trackPoint.getLatLong());
@@ -638,12 +1133,9 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                         }
 
                         if (!update) {
-                            latLongs.add(endPos);
+                            latLongs.add(endPoint);
                         }
 
-                        if (startPos == null) {
-                            startPos = endPos;
-                        }
                     }
                     trackpointsBySegments.debug().setTrackpointsDrawn(trackpointsBySegments.debug().getTrackpointsDrawn() + trackPoints.size());
                 }
@@ -669,12 +1161,142 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
                 boundingBox = new BoundingBox(latLongs).extendMargin(1.2f);
                 myPos = boundingBox.getCenterPoint();
             }
+            if (!latLongs.isEmpty()) {
+                drawTrackBorder(latLongs, Color.BLACK, 3); // Adjust color and width as needed
+            }
 
             if (myPos != null) {
                 updateMapPositionAndRotation(myPos);
             }
             updateDebugTrackPoints();
         }
+
+        ExecutorService myExecutor = Executors.newCachedThreadPool();
+        myExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                // get ski features
+                OkHttpClient client = new OkHttpClient().newBuilder()
+                        .build();
+                MediaType mediaType = MediaType.parse("text/plain");
+                String bbox = boundingBox.minLatitudeE6 / 1000000.0 + ","
+                        + boundingBox.minLongitudeE6 / 1000000.0 + ","
+                        + boundingBox.maxLatitudeE6 / 1000000.0 + ","
+                        + boundingBox.maxLongitudeE6 / 1000000.0;
+
+                String skiRouteRequestBodyData = "data=[out:json][timeout:90];" + "(way[\"piste:type\"](" +
+                        bbox + ");relation[\"piste:type\"](" + bbox + ");" + ");" + "out geom;";
+
+                // making API request for ski route data
+                RequestBody body = RequestBody.create(mediaType, skiRouteRequestBodyData);
+                Request request = new Request.Builder()
+                        .url("https://overpass-api.de/api/interpreter")
+                        .method("POST", body)
+                        .addHeader("Content-Type", "text/plain")
+                        .build();
+                Response response = null;
+                try {
+                    response = client.newCall(request).execute();
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+                    Log.println(Log.DEBUG, TAG, String.valueOf(jsonResponse));
+
+                    // reading elements array from JSON response
+                    JSONArray elements = jsonResponse.getJSONArray("elements");
+                    for (int i = 0; i < elements.length(); i++) {
+                        JSONObject element = elements.getJSONObject(i);
+                        String type = element.getString("type");
+                        long id = element.getLong("id");
+                        JSONObject tags = element.getJSONObject("tags");
+                        JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
+                        JSONArray geometry = element.getJSONArray("geometry"); // coordinates
+                        String name = tags.optString("name", "Unnamed");
+                        Trail trail = Trail.getInstance(); // singleton class
+                        SkiElements skiElements = SkiElements.parseJsonElement(element); // has ski-elements in the form of list
+                        trail.addTrailData(skiElements); // adds ski-element list in the trails
+                        // Now you can use these variables as needed
+                        Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                // making API request for chair lift data
+                String chairLiftRequestBodyData = "data=[out:json][timeout:90];" +
+                        "(node[\"aerialway\"=\"chair_lift\"](" + bbox + ");" +
+                        "way[\"aerialway\"=\"chair_lift\"](" + bbox + ");" +
+                        "way[\"aerialway\"=\"chair_lift\"](" + bbox + ");" +
+                        ");out geom;";
+                body = RequestBody.create(mediaType, chairLiftRequestBodyData);
+                request = new Request.Builder()
+                        .url("https://overpass-api.de/api/interpreter")
+                        .method("POST", body)
+                        .addHeader("Content-Type", "text/plain")
+                        .build();
+                try {
+                    response = client.newCall(request).execute();
+                    JSONObject jsonResponse = new JSONObject(response.body().string());
+
+                    // extracting data
+                    JSONArray elements = jsonResponse.getJSONArray("elements");
+
+                    // integrate chair_lift tags into tracks
+                    ChairLift chairLift = ChairLift.getInstance(); // singleton class
+                    chairLift.clearData();
+                    for (int i = 0; i < elements.length(); i++) {
+                        JSONObject element = elements.getJSONObject(i);
+                        String type = element.getString("type");
+                        long id = element.getLong("id");
+                        JSONObject tags = element.getJSONObject("tags");
+                        JSONArray nodes = element.getJSONArray("nodes"); // Getting the nodes array
+                        JSONArray geometry = element.getJSONArray("geometry"); // coordinates
+                        String name = tags.optString("name", "Unnamed");
+
+                        ChairLiftElements chairLiftElements = ChairLiftElements.parseJsonElement(element);
+                        chairLift.addChairLiftData(chairLiftElements); // adds chairLift element list in the chairLifts
+
+                        // Now you can use these variables as needed
+                        Log.i(TAG, "Type: " + type + ", ID: " + id + ", Name: " + name);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+    private void setAverageSpeedperSegment(List<List<TrackPoint>> trackpointsBySegments){
+        averageSpeedperSegment.clear();
+        DecimalFormat df = new DecimalFormat("###.##");
+        for (var trackPoints : trackpointsBySegments) {
+            double average=0;
+            int sizeTrackPoints = trackPoints.size();
+            double speed=0;
+            for(var trackpoint:trackPoints){
+                speed += trackpoint.getSpeed();
+            }
+            average=speed/sizeTrackPoints;
+            averageSpeedperSegment.add(Double.valueOf(df.format(average)));
+        }
+    }
+    private void getAverageSpeedPerInterval(){
+        StringBuilder message= new StringBuilder();
+        int segmentNumber = 1;
+        for(var segment:averageSpeedperSegment){
+            message.append("Average speed for interval ")
+                    .append(String.valueOf(segmentNumber))
+                    .append(" is ")
+                    .append(segment)
+                    .append("\n\n");
+            segmentNumber++;
+        }
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setIcon(R.drawable.ic_logo_color_24dp)
+                .setTitle(R.string.app_name)
+                .setMessage(message.toString())
+                .setPositiveButton(android.R.string.ok,null )
+                .create();
+        dialog.show();
     }
 
     private void resetMapData() {
@@ -689,6 +1311,9 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         // polylines
         if (polylinesLayer != null) {
             layers.remove(polylinesLayer);
+        }
+        if(polyline != null){
+            map.layers().remove(polyline);
         }
         polylinesLayer = new GroupLayer(map);
         layers.add(polylinesLayer);
@@ -731,6 +1356,35 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         }
     }
 
+    /**
+     * read ski elements from json input and returns it
+     * @param jsonString
+     * @return ski element translated from json file
+     * example of usage:
+     * String jsonInput = "[{\"type\":\"ski_element\",\"id\":1,\"bounds\":{\"minlat\":10,
+     *                      \"minlon\":20,\"maxlat\":30,\"maxlon\":40},\"nodes\":[123,456],
+     *                      \"geometry\":[{\"lat\":25,\"lon\":35}],\"tags\":{\"name\":\"Ski
+     *                      Resort\",\"piste:difficulty\":\"easy\",\"piste:type\":\"downhill\",
+     *                      \"ref\":\"SR001\"}}]";
+     */
+    public SkiElements readSkiElementsFromJson(String jsonString) {
+        SkiElements skiElement = new SkiElements();
+        try {
+            JSONArray jsonArray = new JSONArray(jsonString);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                skiElement = SkiElements.parseJsonElement(jsonObject);
+                // Now you can use the parsed ski element as needed
+                System.out.println("Type: " + skiElement.type + ", ID: " + skiElement.id);
+                return skiElement;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        return skiElement;
+    }
+
     private void setEndMarker(GeoPoint endPos) {
         synchronized (map.layers()) {
             if (endMarker != null) {
@@ -748,16 +1402,21 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         }
     }
 
-    private PathLayer addNewPolyline(int trackColor) {
-        // Define stroke width for the path
-//        float strokeWidth = 10f;
+
+    private PathLayer addNewPolyline(int trackColor, double frequency) {
+        //Adjusting the width
+        float strokeWidth = updateStrokeWidth(frequency); //Get stroke width according to frequency
+        float borderWidth = 13f;
+
+        //Creating a border polyline
+
+        PathLayer borderpolyline =new PathLayer(map, Color.BLACK,borderWidth);
+        polylinesLayer.layers.add(borderpolyline);
+
         polyline = new PathLayer(map, trackColor, strokeWidth);
-        //Adding border color
-//        polyline.setBorderColor(Color.RED);
-        //Adjusting border width
-//        polyline.setBorderWidth(strokeWidth + 2);
+
         polylinesLayer.layers.add(polyline);
-        return this.polyline;
+        return polyline;
     }
 
     private void readWaypoints(Uri data) {
@@ -799,6 +1458,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
     private void readTracks(Uri data) {
         var tracks = Track.readTracks(getContentResolver(), data);
+        this.storedTracksData = tracks;
         if (!tracks.isEmpty()) {
             var statistics = new TrackStatistics(tracks);
             removeStatisticElements();
@@ -839,6 +1499,7 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
 
         mapPreferences.load(map);
         binding.map.mapView.onResume();
+
     }
 
     @Override
@@ -912,6 +1573,100 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
     private void updateMapPositionAndRotation(final GeoPoint myPos) {
         var newPos = map.getMapPosition().setPosition(myPos).setBearing(mapMode.getHeading(movementDirection));
         map.animator().animateTo(newPos);
+    }
+
+    /**
+     * use ski and track point data together, a function to call retrieve their info and call visualizers for them
+     * @param data uri data
+     * @param update a boolean indicating update status
+     * @param protocolVersion
+     */
+    private void visualizeTrackpointsAndSkiElements(Uri data, boolean update, int protocolVersion) {
+        // Read trackpoints
+        ArrayList<GeoPoint> latLongs = new ArrayList<>();
+        readTrackpoints(data, update, protocolVersion);
+        // Parse ski elements
+        String skiElementsJsonString = "{ \"skiElements\": [{ \"type\": \"slope\", \"id\": 1 }, { \"type\": \"lift\", \"id\": 2 }] }";
+        SkiElements skiElements = readSkiElementsFromJson(skiElementsJsonString);
+        // Visualize trackpoints on map
+        visualizeTrackpoints(latLongs);
+        // Visualize ski elements on map
+        visualizeSkiElements(skiElements);
+    }
+
+    /**
+     * sample function to visualize track point information
+     * @param latLongs arraylist of geopoints
+     */
+    private void visualizeTrackpoints(ArrayList<GeoPoint> latLongs) {
+        // Creating a new Polyline layer to add trackpoints
+        PathLayer trackpointsLayer = new PathLayer(map, Color.RED, 5f);
+        for (GeoPoint point : latLongs) {
+            trackpointsLayer.addPoint(point);
+        }
+        map.layers().add(trackpointsLayer);
+    }
+
+    /**
+     * sample function to visualize information about a single ski element
+     * @param skiElement single element to be visualized
+     */
+    private void visualizeSkiElements(SkiElements skiElement) {
+        if (skiElement == null) {
+            return;
+        }
+        GeoPoint position = null;
+        // Check if the bounds are available
+        if (skiElement.bounds != null) {
+            // Calculate the center position using bounds
+            double lat = (skiElement.bounds.minlat + skiElement.bounds.maxlat) / 2.0;
+            double lon = (skiElement.bounds.minlon + skiElement.bounds.maxlon) / 2.0;
+            position = new GeoPoint(lat, lon);
+        } else if (skiElement.geometry != null && !skiElement.geometry.isEmpty()) {
+            // Use the first geometry point as the position
+            Geometry geometry = skiElement.geometry.get(0);
+            position = new GeoPoint(geometry.lat, geometry.lon);
+        }
+        if (position != null) {
+            // Add a marker to the layer
+            map.layers().add(addNewPolyline(Color.BLUE, 1));
+        }
+    }
+
+    /**
+     * sample function to visualize list of ski elements
+     * @param skiElementsList list of ski elements to be visualized
+     */
+    private void visualizeSkiElements(ArrayList<SkiElements> skiElementsList) {
+        if (skiElementsList == null || skiElementsList.isEmpty()) {
+            return;
+        }
+
+        // Iterate over the list of SkiElements
+        for (SkiElements skiElement : skiElementsList) {
+            GeoPoint position = null;
+
+            // Check if the bounds are available
+            if (skiElement.bounds != null) {
+                // Calculate the center position using bounds
+                double lat = (skiElement.bounds.minlat + skiElement.bounds.maxlat) / 2.0;
+                double lon = (skiElement.bounds.minlon + skiElement.bounds.maxlon) / 2.0;
+                position = new GeoPoint(lat, lon);
+            } else if (skiElement.geometry != null && !skiElement.geometry.isEmpty()) {
+                // Use the first geometry point as the position
+                Geometry geometry = skiElement.geometry.get(0);
+                position = new GeoPoint(geometry.lat, geometry.lon);
+            }
+
+            if (position != null) {
+                // Add a marker or symbol to represent the SkiElement on the map
+                map.layers().add(addNewPolyline(Color.BLUE, 1));
+            }
+        }
+    }
+    private float updateStrokeWidth(double frequency) {
+        // frequency is added to the stroke width according to the frequency.
+        return (float) (7f * frequency);
     }
 
 }

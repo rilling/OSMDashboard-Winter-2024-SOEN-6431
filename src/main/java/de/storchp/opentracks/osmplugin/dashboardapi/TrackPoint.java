@@ -6,11 +6,16 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
+
 import android.util.Pair;
 
 import org.oscim.core.GeoPoint;
 
 import java.text.SimpleDateFormat;
+
+
+import java.lang.reflect.Type;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -57,15 +62,19 @@ public class TrackPoint {
     };
 
     private final long trackPointId;
-    private final long trackRecordId;
+
+    private final long trackRecordId; // Renamed to avoid confusion with TRACKID
+
     private final GeoPoint latLong;
     private final boolean pause;
     private final double speed;
     private final Integer type;
     private final Date time;
+
     private final double elevation;
 
     public TrackPoint(long trackRecordId, long trackPointId, double latitude, double longitude, Integer type, double speed, double elevation, Date time) {
+
         this.trackRecordId = trackRecordId;
         this.trackPointId = trackPointId;
         if (MapUtils.isValid(latitude, longitude)) {
@@ -75,7 +84,9 @@ public class TrackPoint {
         }
         this.pause = type != null ? type == 3 : latitude == PAUSE_LATITUDE;
         this.speed = speed;
+
         this.elevation = elevation;
+
         this.time = time;
         this.type = type;
     }
@@ -117,7 +128,7 @@ public class TrackPoint {
             TrackPoint lastTrackPoint = null;
             List<TrackPoint> segment = null;
             while (cursor.moveToNext()) {
-                debug.setTrackpointsReceived(debug.getTrackpointsReceived() + 1);
+                //debug.trackpointsReceived++;
                 var trackPointId = cursor.getLong(cursor.getColumnIndexOrThrow(TrackPoint._ID));
                 var trackRecordId = cursor.getLong(cursor.getColumnIndexOrThrow(TrackPoint.TRACKID));
                 var latitude = cursor.getInt(cursor.getColumnIndexOrThrow(TrackPoint.LATITUDE)) / LAT_LON_FACTOR;
@@ -125,6 +136,7 @@ public class TrackPoint {
                 var typeIndex = cursor.getColumnIndex(TrackPoint.TYPE);
                 var speed = cursor.getDouble(cursor.getColumnIndexOrThrow(TrackPoint.SPEED));
                 var timeValue = cursor.getLong(cursor.getColumnIndexOrThrow(TrackPoint.TIME));
+
                 var elevation = cursor.getDouble(cursor.getColumnIndexOrThrow(TrackPoint.ELEVATION));
 
 
@@ -133,21 +145,24 @@ public class TrackPoint {
                 TrackPoint.addSpeedTimeEntry(speed, String.valueOf(time));
                 TrackPoint.addSpeedElevationEntry(speed,elevation);
 
+
+                Date time = new Date(timeValue);
                 Integer type = null;
                 if (typeIndex > -1) {
                     type = cursor.getInt(typeIndex);
-                }
 
                 if (lastTrackPoint == null || lastTrackPoint.trackRecordId != trackRecordId) {
                     segment = new ArrayList<>();
                     segments.add(segment);
                 }
 
+
                 lastTrackPoint = new TrackPoint(trackRecordId, trackPointId, latitude, longitude, type, speed,elevation,time);
+
                 if (lastTrackPoint.hasValidLocation()) {
                     segment.add(lastTrackPoint);
                 } else if (!lastTrackPoint.isPause()) {
-                    debug.setTrackpointsInvalid(debug.getTrackpointsInvalid() + 1);
+                    //debug.trackpointsInvalid++;
                 }
                 if (lastTrackPoint.isPause()) {
                     debug.setTrackpointsPause(debug.getTrackpointsPause() + 1);
@@ -155,17 +170,21 @@ public class TrackPoint {
                         if (segment.size() > 0) {
                             var previousTrackpoint = segment.get(segment.size() - 1);
                             if (previousTrackpoint.hasValidLocation()) {
+
                                 segment.add(new TrackPoint(trackRecordId, trackPointId, previousTrackpoint.getLatLong().getLatitude(), previousTrackpoint.getLatLong().getLongitude(), type, speed,elevation,time));
+
                             }
                         }
                         lastTrackPoint = null;
                     }
+                    lastTrackPoint = null;
                 }
             }
-            debug.setSegments(segments.size());
-
-            return new TrackPointsBySegments(segments, debug);
         }
+        //debug.segments = segments.size();
+
+        return new TrackPointsBySegments(segments, debug);
+    }
     }
 
     public long getTrackPointId() {
@@ -192,6 +211,7 @@ public class TrackPoint {
     }
 
 
+
     public static void addSpeedTimeEntry(double speed, String time) {
         speedTimeEntries.add(new Pair<>(speed, time));
         //Log.d("TrackPointData", "Entry added - Speed: " + speed + ", Time: " + time);
@@ -210,5 +230,5 @@ public class TrackPoint {
     public static void clearSpeedElevationEntries() {
         speedElevationEntries.clear();
     }
-    
+
 }
