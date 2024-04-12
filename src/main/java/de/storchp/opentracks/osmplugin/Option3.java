@@ -41,7 +41,7 @@ public class Option3 extends MapsActivity {
         // Iterate through each entry to count occurrences by hour
         for (android.util.Pair<Double, String> entry : TrackPoint.speedTimeEntries) {
             String time = entry.second; // Get the time string
-            Log.d("time", String.valueOf(entry));
+//            Log.d("time", String.valueOf(entry));
 
             try {
                 String timee = entry.second;
