@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:padding="16dp">
+
+    <!-- Text view for spinner -->
+    <TextView
+        android:id="@+id/spinnerDescriptionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="Select Data Points:"
+        android:textAppearance="?attr/textAppearanceListItem" />
+<!-- android:background="@drawable/spinner_background" -->
+    <Spinner
+        android:id="@+id/spinner_window_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/spinnerDescriptionLabel"
+        android:layout_alignBaseline="@id/spinnerDescriptionLabel"
+        style="@style/Widget.AppCompat.Spinner.Underlined"
+
+        android:entries="@array/window_size_options"
+        android:minHeight="48dp"
+        android:padding="8dp"
+        android:layout_marginStart="8dp"
+        android:tooltipText="Choose the number of data points to display on the graph" />
+
+    <!-- Text view for line chart-->
+    <TextView
+        android:id="@+id/chartLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/spinner_window_size"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="Speed(km/h)"
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+
+
+    <com.github.mikephil.charting.charts.LineChart
+    android:id="@+id/lineChart"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+        android:layout_below="@id/chartLabel"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"/>
+
+<!--        android:layout_below="@id/option4" -->
+
+</RelativeLayout>
