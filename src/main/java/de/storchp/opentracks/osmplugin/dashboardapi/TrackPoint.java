@@ -146,7 +146,6 @@ public class TrackPoint {
                 TrackPoint.addSpeedElevationEntry(speed,elevation);
 
 
-                Date time = new Date(timeValue);
                 Integer type = null;
                 if (typeIndex > -1) {
                     type = cursor.getInt(typeIndex);
