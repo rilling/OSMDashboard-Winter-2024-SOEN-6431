@@ -1,7 +1,6 @@
 package de.storchp.opentracks.osmplugin;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 public class AggregateDailyData {
     LocalDate date;
