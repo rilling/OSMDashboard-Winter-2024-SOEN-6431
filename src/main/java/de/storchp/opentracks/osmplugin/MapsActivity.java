@@ -206,7 +206,6 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
         strokeWidth = 8;
-        //strokeWidth = PreferencesUtils.getStrokeWidth();
         mapMode = PreferencesUtils.getMapMode();
 
         map = binding.map.mapView.map();
@@ -275,14 +274,12 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
             resetMapData();
             Segment closestSegment = null;
             Segment nextSegment = null;
-            int segmentNumber = 0;
             double minDistance = Double.MAX_VALUE;
             for (int i = 0; i < segments.size(); i++) {
                 double distance = SegmentFinder.distanceToSegment(segments.get(i).start, segments.get(i).end, geoPoint);
                 if (distance < minDistance) {
                     minDistance = distance;
                     closestSegment = segments.get(i);
-                    segmentNumber = i;
                     if((i+1)<segments.size()){
                         nextSegment = segments.get(i+1);
                     }
@@ -406,14 +403,14 @@ public class MapsActivity extends BaseActivity implements ItemizedLayer.OnItemGe
         drawTableLine(tableLayout);
         long differenceInMilliseconds = nextSegment.getTime().getTime() - selectedSegmentInTrack.getTime().getTime();
 
-// Convert the difference from milliseconds to minutes
+        // Convert the difference from milliseconds to minutes
         long differenceInMinutes = differenceInMilliseconds / (60 * 1000);
 
-// If you want to get the difference in a specific String format like "XX min XX sec", you can do:
+        // If you want to get the difference in a specific String format like "XX min XX sec", you can do:
         long differenceInSeconds = differenceInMilliseconds / 1000; // total seconds
         long seconds = differenceInSeconds % 60; // remaining seconds
         String formattedDifference = Math.abs(differenceInMinutes) + " min " + Math.abs(seconds) + " sec";
-//        Log.d("checkoutput",String.valueOf(selectedSegmentInTrack.getDistance()));
+
         TableRow headerRow = new TableRow(this);
         headerRow.setLayoutParams(new TableRow.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
